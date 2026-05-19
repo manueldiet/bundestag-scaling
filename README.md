@@ -3,7 +3,7 @@
 **Ideal-Point Estimation of the 20th German Bundestag**
 SDS 100 Qualifying Exam · University of Mannheim · Manuel Dieterle
 
-📊 **Live site:** [https://USERNAME.github.io/bundestag-scaling/](https://USERNAME.github.io/bundestag-scaling/)
+📊 **Live site:** [https://manueldiet.github.io/bundestag-scaling/](https://manueldiet.github.io/bundestag-scaling/)
 
 ---
 
@@ -48,7 +48,7 @@ bundestag-scaling/
 
 1. Clone:
    ```bash
-   git clone https://github.com/USERNAME/bundestag-scaling.git
+   git clone https://github.com/manueldiet/bundestag-scaling.git
    cd bundestag-scaling
    ```
 
@@ -75,7 +75,7 @@ bundestag-scaling/
 
 1. Push the repo to GitHub.
 2. **Settings → Pages → Branch: `main`, folder: `/ (root)`**, click Save.
-3. After ~1 min the site is live at `https://USERNAME.github.io/bundestag-scaling/`.
+3. After ~1 min the site is live at `https://manueldiet.github.io/bundestag-scaling/`.
 
 ---
 
