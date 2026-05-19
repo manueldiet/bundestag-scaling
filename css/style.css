@@ -619,3 +619,47 @@ footer {
   body { background: white; font-size: 11pt; }
   article { max-width: none; }
 }
+
+/* ---- Main layout (no sidebar variant) ---- */
+main {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 5vw, 4rem) var(--gutter);
+}
+
+article {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+/* ---- Claim box (substantive evaluation) ---- */
+.claim-box {
+  margin: 2rem 0;
+  padding: 1.5rem 2rem;
+  background: var(--uni-navy);
+  color: var(--paper);
+  border-left: 4px solid var(--uni-ice);
+}
+.claim-label {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--uni-ice);
+  margin-bottom: 0.5rem;
+}
+.claim-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  line-height: 1.45;
+  margin: 0;
+  font-variation-settings: "opsz" 90, "SOFT" 60;
+}
+
+/* ---- Table separator row ---- */
+table.data tr.sep td {
+  border-top: 2px solid var(--uni-navy);
+  padding-top: 0.85rem;
+}
