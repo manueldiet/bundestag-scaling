@@ -1,0 +1,38 @@
+# R / RStudio
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# Stan / cmdstan compiled artefacts
+*.exe
+*.stan.o
+*.hpp
+
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local environment
+.env
+.Renviron
+
+# Large intermediate outputs — keep RData, ignore everything else
+output/*.rds
+output/tmp/
+
+# Python venvs (for any helper scripts)
+__pycache__/
+*.pyc
+venv/
+.venv/

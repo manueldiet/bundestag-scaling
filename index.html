@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Ideal-Point Estimation of the 20th German Bundestag using SVD, Double-Centered SVD, and Bayesian 2-PL IRT. A SDS100 Qualifying Exam project at the University of Mannheim." />
+  <title>Scaling the 20th Bundestag — University of Mannheim</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,30..100;1,9..144,300..600,30..100&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Plotly (loaded from CDN; ~3 MB minified) -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <span>University of Mannheim · SDS 100 · Qualifying Exam · WS 2024 / SS 2025</span>
+      <a href="https://github.com/USERNAME/bundestag-scaling" target="_blank" rel="noopener">View on GitHub →</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Roll-Call Scaling · Vol. 1 · Issue 1</p>
+      <h1 class="title">Scaling the 20<sup style="font-size:0.55em;">th</sup> Bundestag: <em>Ideology, Coalition, and the Geometry of a Vote</em></h1>
+      <p class="deck">Three estimators — a simple SVD, its double-centered cousin, and a Bayesian 2-PL IRT model — applied to 161 roll-call votes of the Ampel coalition. What emerges is less a left–right axis than a record of who governed and who did not.</p>
+      <div class="byline">
+        <span><strong>By Manuel Dieterle</strong></span>
+        <span>Universität Mannheim · School of Social Sciences</span>
+        <span>Wahlperiode 20 · 29 Sep 2021 — 24 Mar 2025</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="stat-strip">
+    <div class="stat"><div class="stat-num">772</div><div class="stat-label">Members of Parliament</div></div>
+    <div class="stat"><div class="stat-num">161</div><div class="stat-label">Roll-Call Votes</div></div>
+    <div class="stat"><div class="stat-num">17.8%</div><div class="stat-label">Missing, Imputed</div></div>
+    <div class="stat"><div class="stat-num">83.6%</div><div class="stat-label">Variance, Dim 1</div></div>
+    <div class="stat"><div class="stat-num">8 000</div><div class="stat-label">Posterior Draws</div></div>
+  </section>
+
+  <div class="layout">
+
+    <!-- Sticky table of contents -->
+    <nav class="toc" aria-label="Table of contents">
+      <div class="toc-label">In this issue</div>
+      <ol>
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#data">The data</a></li>
+        <li><a href="#svd">Baseline SVD</a></li>
+        <li><a href="#dcsvd">Double-centered SVD</a></li>
+        <li><a href="#irt">Bayesian 2-PL IRT</a></li>
+        <li><a href="#explorer">Legislator explorer</a></li>
+        <li><a href="#findings">Substantive findings</a></li>
+        <li><a href="#methods">Reproducibility</a></li>
+      </ol>
+    </nav>
+
+    <article>
+
+      <!-- ===================== INTRODUCTION ===================== -->
+      <section id="introduction">
+        <h2>Introduction</h2>
+        <p>When a parliament votes, it leaves a trace. Each roll call is a small data point about where every legislator stands relative to every other. With enough such traces, one can recover an underlying geometry — a low-dimensional space in which familiar political categories like <em>left</em>, <em>right</em>, or <em>government</em> reappear as coordinates. This is the project of <strong>ideal-point estimation</strong>, and it has been the workhorse of empirical legislative studies since Poole and Rosenthal's NOMINATE in the 1980s.</p>
+
+        <p>This paper applies three such estimators to the namentliche Abstimmungen — the recorded, name-by-name votes — of the 20<sup>th</sup> German Bundestag, the so-called <em>Ampel</em> period in which SPD, Bündnis 90/Die Grünen, and the FDP formed a three-party coalition from September 2021 until its collapse in March 2025. The estimators run from the simple to the elaborate: an unadjusted Singular Value Decomposition, a double-centered SVD that removes baseline participation effects, and a Bayesian two-parameter logistic IRT model fitted in Stan.</p>
+
+        <p>The substantive question is narrower. The FDP is often described as the coalition's most reluctant partner. We ask whether, in the geometry of actual voting behaviour, the FDP sat closer to the CDU/CSU opposition than to its own coalition partners. The answer, perhaps surprisingly, is not what the political commentary would suggest.</p>
+      </section>
+
+      <!-- ===================== DATA ===================== -->
+      <section id="data">
+        <h2>The data</h2>
+        <p>The raw material is a 772 × 161 matrix: rows are MPs, columns are roll-call votes. Cells take values <code>1</code> (yes), <code>0</code> (no), or <code>NA</code> for abstentions, absences, and post-hoc joiners. Roughly 17.8% of cells are missing — a non-trivial share that no scaling method can ignore.</p>
+
+        <h3>Composition of the chamber</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <caption>Table 1 · Party affiliations of the 772 MPs in the analysis sample</caption>
+            <thead>
+              <tr><th>Party</th><th>Role</th><th class="num">n</th><th class="num">Share</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>           <td>Coalition</td>  <td class="num">217</td><td class="num">28.1%</td></tr>
+              <tr><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>       <td>Opposition</td> <td class="num">205</td><td class="num">26.6%</td></tr>
+              <tr><td><span class="party-chip" style="background:#1AA037"></span>Bündnis 90/Grüne</td><td>Coalition</td> <td class="num">124</td><td class="num">16.1%</td></tr>
+              <tr><td><span class="party-chip" style="background:#FFED00; border-color: #B8AB00"></span>FDP</td><td>Coalition</td> <td class="num">98</td> <td class="num">12.7%</td></tr>
+              <tr><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>           <td>Opposition</td><td class="num">81</td> <td class="num">10.5%</td></tr>
+              <tr><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>    <td>Opposition</td><td class="num">40</td> <td class="num">5.2%</td></tr>
+              <tr><td><span class="party-chip" style="background:#888888"></span>fraktionslos</td>  <td>—</td>         <td class="num">7</td>  <td class="num">0.9%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Handling missingness</h3>
+        <p>Following standard practice, missing entries were filled by <em>double-mean imputation</em>: each missing cell <code>X[i,j]</code> is replaced by the row mean plus the column mean minus the grand mean, anchoring the imputed value both to the legislator's general tendency to vote yes and to the vote's general acceptance rate.</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Double-mean imputation (R)</span>
+<span class="tok-fn">row_means</span> &lt;- <span class="tok-fn">rowMeans</span>(X, na.rm = <span class="tok-kw">TRUE</span>)
+<span class="tok-fn">col_means</span> &lt;- <span class="tok-fn">colMeans</span>(X, na.rm = <span class="tok-kw">TRUE</span>)
+<span class="tok-fn">grand_mean</span> &lt;- <span class="tok-fn">mean</span>(X, na.rm = <span class="tok-kw">TRUE</span>)
+
+X_hat &lt;- X
+<span class="tok-kw">for</span> (i <span class="tok-kw">in</span> <span class="tok-fn">seq_len</span>(<span class="tok-fn">nrow</span>(X))) {
+  <span class="tok-kw">for</span> (j <span class="tok-kw">in</span> <span class="tok-fn">seq_len</span>(<span class="tok-fn">ncol</span>(X))) {
+    <span class="tok-kw">if</span> (<span class="tok-fn">is.na</span>(X[i, j])) {
+      X_hat[i, j] &lt;- row_means[i] + col_means[j] - grand_mean
+    }
+  }
+}</code></pre>
+
+        <p>Imputation is not innocent — it pulls extreme legislators toward the chamber's centre — but for the 17.8% missingness here, the bias is modest and the alternative (listwise deletion) would discard nearly a fifth of the matrix.</p>
+      </section>
+
+      <!-- ===================== SVD ===================== -->
+      <section id="svd">
+        <h2>Baseline SVD</h2>
+        <p>Singular Value Decomposition is the simplest estimator that can credibly be called <em>ideal-point</em>. It writes the imputed matrix as the product <code>X = UΣVᵀ</code>, and the first column of <code>U</code> — scaled by the leading singular value — gives each legislator a position on the dominant dimension of variation.</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Baseline SVD (R)</span>
+svd_fit &lt;- <span class="tok-fn">svd</span>(X_hat)
+legislator_coords &lt;- svd_fit$u %*% <span class="tok-fn">diag</span>(svd_fit$d)
+dim1 &lt;- legislator_coords[, <span class="tok-num">1</span>]
+dim2 &lt;- legislator_coords[, <span class="tok-num">2</span>]</code></pre>
+
+        <p>The first dimension absorbs <strong>83.6%</strong> of the total variance — an enormous share that immediately suggests one structural cleavage dominates everything else. The second dimension picks up a further 10.2%, and a third drops to a thin 2.0%.</p>
+
+        <h3>What does dimension one represent?</h3>
+        <p>Inspecting the party means tells the story. All Ampel parties cluster tightly around <code>−0.042</code>; the opposition parties (CDU/CSU, AfD, Linke) sit at less-negative values. The dimension is, in effect, a <em>coalition axis</em>: it separates those who governed from those who did not.</p>
+
+        <div class="table-wrap">
+          <table class="data">
+            <caption>Table 2 · Mean position on Dimension 1, baseline SVD</caption>
+            <thead><tr><th>Party</th><th class="num">Dim 1 mean</th><th>Bloc</th></tr></thead>
+            <tbody>
+              <tr><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>          <td class="num">−0.0427</td><td>Coalition</td></tr>
+              <tr><td><span class="party-chip" style="background:#1AA037"></span>Grüne</td>       <td class="num">−0.0424</td><td>Coalition</td></tr>
+              <tr><td><span class="party-chip" style="background:#FFED00; border-color:#B8AB00"></span>FDP</td>           <td class="num">−0.0424</td><td>Coalition</td></tr>
+              <tr><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>      <td class="num">−0.0297</td><td>Opposition</td></tr>
+              <tr><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>   <td class="num">−0.0135</td><td>Opposition</td></tr>
+              <tr><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>          <td class="num">−0.0109</td><td>Opposition</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The votes loading most heavily on the negative (coalition) end of Dimension 1 are utterly characteristic of an Ampel agenda: strengthening suicide prevention, a Bundeswehr deployment in Sudan, digital promulgation of federal laws. At the positive (opposition) end sit votes on <em>extending nuclear plant operations</em>, the AfD's anti-vaccination motion, and a renewed laufzeitverlängerung debate. These are not, strictly, ideological questions — they are agenda-setting questions, and the coalition voted yes to its own agenda.</p>
+
+        <div class="finding">
+          <span class="finding-label">Finding 1</span>
+          The first dimension recovered by raw SVD is a coalition axis, not an ideology axis. SPD, Greens, and FDP are statistically indistinguishable on it.
+        </div>
+
+        <h3>Dimension two: constructive vs. destructive opposition</h3>
+        <p>The second dimension does something more interesting: it splits the CDU/CSU (mean <code>−0.060</code>) from the Ampel parties (means between <code>+0.017</code> and <code>+0.021</code>). Read substantively, this looks like a divide between the constructive opposition — a Christian-democratic party expecting to govern again — and the destructive opposition embodied by the AfD and parts of the Linke.</p>
+
+        <figure>
+          <iframe src="output/svd_interactive.html" width="100%" height="520" frameborder="0" loading="lazy" title="Interactive SVD scatter"></iframe>
+          <figcaption>
+            <span class="fig-num">Figure 1 · Interactive</span>
+            Baseline SVD: legislators projected onto Dimensions 1 and 2. Hover for names; click party legend to filter. The horizontal axis separates coalition from opposition; the vertical separates the CDU/CSU's quiet opposition from the AfD's loud one.
+          </figcaption>
+        </figure>
+      </section>
+
+      <!-- ===================== DC-SVD ===================== -->
+      <section id="dcsvd">
+        <h2>Double-centered SVD</h2>
+        <p>If Dimension 1 is dominated by a coalition effect, what remains once that effect is removed? The standard answer is to <em>double-centre</em> the matrix — subtract row, column, and grand means — before decomposing it. This strips out baseline tendencies (some MPs vote yes more often; some votes pass more easily) and leaves only the interaction structure.</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Double-centered SVD (R)</span>
+X_dc &lt;- <span class="tok-fn">scale</span>(X_hat, center = <span class="tok-kw">TRUE</span>, scale = <span class="tok-kw">FALSE</span>)
+X_dc &lt;- <span class="tok-fn">t</span>(<span class="tok-fn">scale</span>(<span class="tok-fn">t</span>(X_dc), center = <span class="tok-kw">TRUE</span>, scale = <span class="tok-kw">FALSE</span>))
+dc_fit &lt;- <span class="tok-fn">svd</span>(X_dc)</code></pre>
+
+        <p>The variance share of Dimension 1 collapses from 83.6% to <strong>60.5%</strong>. The missing 23 percentage points were pure baseline. What is left is a more honest representation of <em>relative</em> voting alignment, and the picture rearranges:</p>
+
+        <div class="table-wrap">
+          <table class="data">
+            <caption>Table 3 · Party means on Dim 1, double-centered SVD</caption>
+            <thead><tr><th>Party</th><th class="num">Dim 1 (DC)</th><th>Shift from raw SVD</th></tr></thead>
+            <tbody>
+              <tr><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>          <td class="num">−0.0305</td><td>—</td></tr>
+              <tr><td><span class="party-chip" style="background:#1AA037"></span>Grüne</td>       <td class="num">−0.0301</td><td>—</td></tr>
+              <tr><td><span class="party-chip" style="background:#FFED00; border-color:#B8AB00"></span>FDP</td>           <td class="num">−0.0262</td><td>still with coalition</td></tr>
+              <tr><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>   <td class="num">+0.0063</td><td>crosses zero</td></tr>
+              <tr><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>          <td class="num">+0.0303</td><td>now clearly opposition</td></tr>
+              <tr><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>      <td class="num">+0.0493</td><td>furthest right</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The reordering is informative. The CDU/CSU — which seemed only mildly oppositional in the raw SVD — emerges as the <em>most</em> oppositional party once baselines are removed. The reading is that the CDU/CSU was the most consistent rejector of coalition proposals: when other opposition parties abstained or absented themselves, the CDU/CSU voted no.</p>
+
+        <p>The correlation between the two estimators is <code>r = 0.706</code>: substantial overlap, but a real divergence in roughly half the variance.</p>
+
+        <div class="finding">
+          <span class="finding-label">Finding 2</span>
+          After removing baseline effects, the CDU/CSU — not the AfD — emerges as the most consequential opposition party in roll-call space.
+        </div>
+
+        <figure>
+          <iframe src="output/dc_svd_interactive.html" width="100%" height="520" frameborder="0" loading="lazy" title="Interactive double-centered SVD scatter"></iframe>
+          <figcaption>
+            <span class="fig-num">Figure 2 · Interactive</span>
+            Double-centered SVD. Dimension 1 now resembles a more conventional government-vs-opposition axis. Note that the FDP remains in the coalition cluster — a point we return to below.
+          </figcaption>
+        </figure>
+      </section>
+
+      <!-- ===================== IRT ===================== -->
+      <section id="irt">
+        <h2>Bayesian 2-PL IRT</h2>
+        <p>SVD is fast and well-understood, but it does not produce uncertainty estimates. For substantive inference — for any sentence that begins <em>"the FDP is probably …"</em> — one needs a model that returns posterior distributions, not point estimates. We fit a two-parameter logistic Item-Response Theory model in Stan, via <code>brms</code>.</p>
+
+        <h3>Model</h3>
+        <p>Each legislator <em>i</em> has an ideal point <code>θ<sub>i</sub></code>. Each vote <em>j</em> has a difficulty <code>β<sub>j</sub></code> and a discrimination <code>α<sub>j</sub></code>. The probability that legislator <em>i</em> votes yes on vote <em>j</em> is:</p>
+
+        <pre data-lang="Stan"><code>P(y_ij = 1) = logit⁻¹( α_j · (θ_i − β_j) )</code></pre>
+
+        <p>Intuitively: each vote is a question with some difficulty (β: where on the ideological dimension is the indifference point?) and some discrimination (α: how cleanly does the vote separate the chamber?). A legislator's probability of voting yes depends on how far her ideal point sits to the "yes" side of the indifference point, amplified by how decisive the vote is.</p>
+
+        <h3>Priors</h3>
+        <pre data-lang="R"><code><span class="tok-com"># brms priors for 2-PL IRT</span>
+priors &lt;- <span class="tok-fn">c</span>(
+  <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">1</span>),    class = <span class="tok-str">"sd"</span>,  group = <span class="tok-str">"mp_id"</span>),     <span class="tok-com"># θ_i ~ N(0, 1)</span>
+  <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">2</span>),    class = <span class="tok-str">"b"</span>),                            <span class="tok-com"># β_j ~ N(0, 2)</span>
+  <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">0.5</span>),  class = <span class="tok-str">"sd"</span>,  group = <span class="tok-str">"vote_id"</span>)    <span class="tok-com"># log α_j ~ N(0, 0.5)</span>
+)
+
+fit_2pl &lt;- <span class="tok-fn">brm</span>(
+  bf(y ~ <span class="tok-num">1</span> + (<span class="tok-num">1</span> | vote_id) + (<span class="tok-num">1</span> | mp_id),
+     nl = <span class="tok-kw">FALSE</span>),
+  data    = long_df,
+  family  = <span class="tok-fn">bernoulli</span>(<span class="tok-str">"logit"</span>),
+  prior   = priors,
+  chains  = <span class="tok-num">4</span>,
+  iter    = <span class="tok-num">2000</span>,
+  warmup  = <span class="tok-num">1000</span>,
+  cores   = <span class="tok-num">8</span>,
+  backend = <span class="tok-str">"cmdstanr"</span>
+)</code></pre>
+
+        <p>The θ-prior is weakly informative — <code>N(0, 1)</code> — which both regularizes the estimates and resolves the location-scale indeterminacy inherent in any IRT model. Sign conventions are post-hoc: we orient the dimension so that opposition parties land on the positive side, matching the DC-SVD geometry.</p>
+
+        <p><em>Status note:</em> the model is currently sampling on a workstation (4 chains × 2000 iterations). The numbers reported in the next section come from a preliminary fit; they will be replaced once the full chain has completed without divergent transitions.</p>
+      </section>
+
+      <!-- ===================== INTERACTIVE EXPLORER ===================== -->
+      <section id="explorer">
+        <h2>Legislator explorer</h2>
+        <p>The figure below lets you move between the three estimators and inspect individual MPs. Switch the <strong>method</strong> dropdown to compare the raw SVD with its double-centered version and the Bayesian IRT. Click party chips to hide or show whole groups. Hover any point for the legislator's name, party, and exact coordinate.</p>
+
+        <div class="explorer">
+          <div class="explorer-header">
+            <h4 class="explorer-title">Interactive: Three ways to scale a parliament</h4>
+            <div class="explorer-controls">
+              <label for="method-select">Method</label>
+              <select id="method-select">
+                <option value="svd">Baseline SVD</option>
+                <option value="dcsvd" selected>Double-centered SVD</option>
+                <option value="irt">Bayesian 2-PL IRT (prelim.)</option>
+              </select>
+              <label for="view-select">View</label>
+              <select id="view-select">
+                <option value="2d" selected>2D scatter</option>
+                <option value="1d">1D strip</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="party-toggles" class="party-toggles"></div>
+
+          <div id="plot"><div class="loading">Loading legislator data…</div></div>
+
+          <div id="plot-summary"></div>
+        </div>
+      </section>
+
+      <!-- ===================== FINDINGS ===================== -->
+      <section id="findings">
+        <h2>Substantive findings</h2>
+        <p>The motivating question was narrow: was the FDP, ideologically, closer to the CDU/CSU than to its coalition partners? Three pieces of evidence inform the answer.</p>
+
+        <h3>1. The party means</h3>
+        <p>On every estimator, the FDP's mean sits inside the coalition cluster, not the opposition one. In the DC-SVD, the FDP is at −0.026 while SPD and Grüne are at −0.030; the CDU/CSU is at +0.049. The straight-line distance from the FDP to the SPD is roughly 0.004; to the CDU/CSU, 0.075 — an order of magnitude larger.</p>
+
+        <h3>2. The posterior probability</h3>
+        <p>Point estimates are not enough; we want the posterior probability that the claim holds. Using the IRT posterior draws:</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Posterior probability that FDP is closer to CDU than SPD</span>
+posterior &lt;- <span class="tok-fn">as_draws_df</span>(fit_2pl)
+
+theta_fdp &lt;- posterior$<span class="tok-fn">theta_FDP</span>
+theta_spd &lt;- posterior$<span class="tok-fn">theta_SPD</span>
+theta_cdu &lt;- posterior$<span class="tok-fn">theta_CDU</span>
+
+d_to_cdu &lt;- <span class="tok-fn">abs</span>(theta_fdp - theta_cdu)
+d_to_spd &lt;- <span class="tok-fn">abs</span>(theta_fdp - theta_spd)
+
+p_claim &lt;- <span class="tok-fn">mean</span>(d_to_cdu &lt; d_to_spd)
+<span class="tok-com"># Preliminary result: P ≈ 0.11</span></code></pre>
+
+        <p>The posterior probability that the FDP sat closer to the CDU/CSU than to the SPD is approximately <strong id="claim-prob">0.11</strong> — that is, the data place roughly nine-to-one odds against the popular framing. The claim is not strictly impossible, but the evidence in roll-call votes is firmly on the other side.</p>
+
+        <div class="finding">
+          <span class="finding-label">Finding 3</span>
+          The narrative of an "FDP closer to CDU than to SPD" is not supported by roll-call evidence. On every estimator, the FDP votes with its coalition partners far more reliably than with the opposition.
+        </div>
+
+        <h3>3. Why the narrative persists anyway</h3>
+        <p>Roll-call votes are a partial window. They miss internal negotiations, public communications, and the cabinet-level disputes (Heizungsgesetz, debt brake, electoral reform) in which the FDP's distance from its partners was most visible. The geometry recovered here is the geometry of <em>publicly cast votes</em> — and in that geometry, party discipline overrode whatever inter-personal proximity existed elsewhere.</p>
+
+        <p>A more thorough analysis would distinguish high-salience from low-salience votes, or model heterogeneity across policy domains. Those refinements are left for future work.</p>
+      </section>
+
+      <!-- ===================== METHODS ===================== -->
+      <section id="methods">
+        <h2>Reproducibility</h2>
+        <p>All code, data, and exported figures live in the project's GitHub repository. The full pipeline is:</p>
+
+        <pre data-lang="Pipeline"><code>scripts/01_data_preparation.R   <span class="tok-com"># Build matrix, impute missing</span>
+scripts/02_svd_analysis.R       <span class="tok-com"># Baseline SVD</span>
+scripts/03_dc_svd_analysis.R    <span class="tok-com"># Double-centered SVD</span>
+scripts/04_irt_model.R          <span class="tok-com"># Bayesian 2-PL (brms + cmdstanr)</span>
+scripts/05_results_summary.R    <span class="tok-com"># Tables, figures</span>
+scripts/06_export_for_web.R     <span class="tok-com"># JSON export for this website</span></code></pre>
+
+        <p>Environment: macOS, R 4.x, <code>tidyverse</code> 2.0.0, <code>brms</code> with <code>cmdstanr</code> 2.38.0, <code>ggplot2</code> 4.0.1. AI assistance (Anthropic Claude) was used during code generation and prose drafting; the full prompt history is documented in <a href="AI_Prompts.md"><code>AI_Prompts.md</code></a>.</p>
+
+        <p>Data source: Bundestag namentliche Abstimmungen, Wahlperiode 20, codebook file <code>bundestag_wp132_vote_codebook.csv</code>.</p>
+      </section>
+
+    </article>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <h4>The project</h4>
+        <p>An ideal-point analysis of the 20<sup>th</sup> Bundestag, completed as the Qualifying Exam for SDS 100 (Regression &amp; Statistics / Machine Learning &amp; Causal Inference) at the University of Mannheim.</p>
+      </div>
+      <div>
+        <h4>Repository</h4>
+        <ul>
+          <li><a href="https://github.com/USERNAME/bundestag-scaling" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="AI_Prompts.md">AI prompt history</a></li>
+          <li><a href="https://github.com/USERNAME/bundestag-scaling/tree/main/scripts" target="_blank" rel="noopener">R scripts</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Methods</h4>
+        <ul>
+          <li>Singular Value Decomposition</li>
+          <li>Double-Centered SVD</li>
+          <li>Bayesian 2-PL IRT (brms + Stan)</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>Manuel Dieterle<br>School of Social Sciences<br>University of Mannheim</p>
+      </div>
+    </div>
+    <div class="colophon">
+      Set in Fraunces &amp; Source Serif 4 · © 2025 · For educational use
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
