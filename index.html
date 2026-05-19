@@ -366,4 +366,115 @@ spd_d1 &lt;- <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>
 
         <figure>
           <img src="svd_dim1_by_party.png" alt="SVD Dimension 1 by party">
-          <figcaption>
+          <figcaption>Figure 1: SVD Dimension 1 by party. SPD, Grüne, and FDP cluster near −0.042.</figcaption>
+        </figure>
+
+        <h3>b) Variance explained by Dimension 1</h3>
+        <p>The proportion of variance explained confirms that one structural cleavage dominates everything else in this parliament.</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Task 2.4 — Variance Explained</span>
+var_explained &lt;- d^<span class="tok-num">2</span> / <span class="tok-fn">sum</span>(d^<span class="tok-num">2</span>)
+cum_var       &lt;- <span class="tok-fn">cumsum</span>(var_explained)
+
+<span class="tok-fn">cat</span>(<span class="tok-fn">sprintf</span>(<span class="tok-str">"Dimension 1 alone explains %.1f%% of the variance.\n"</span>, var_explained[<span class="tok-num">1</span>] * <span class="tok-num">100</span>))</code></pre>
+      </section>
+
+      <section id="dcsvd">
+        <h2>Double-Centered SVD</h2>
+        <p>To strip out baseline tendencies — some MPs vote yes more often; some bills pass more easily — we double-center the matrix before decomposing it:</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Task 3.1 — Apply Double-Centering (03_double_centered_svd.R)</span>
+<span class="tok-fn">double_center</span> &lt;- <span class="tok-kw">function</span>(X) {
+  row_means  &lt;- <span class="tok-fn">rowMeans</span>(X)
+  col_means  &lt;- <span class="tok-fn">colMeans</span>(X)
+  grand_mean &lt;- <span class="tok-fn">mean</span>(X)
+
+  <span class="tok-com"># Efficient vectorised double-centering</span>
+  X_dc &lt;- X -
+    <span class="tok-fn">outer</span>(row_means, <span class="tok-fn">rep</span>(<span class="tok-num">1</span>, <span class="tok-fn">ncol</span>(X))) -
+    <span class="tok-fn">outer</span>(<span class="tok-fn">rep</span>(<span class="tok-num">1</span>, <span class="tok-fn">nrow</span>(X)), col_means) +
+    grand_mean
+
+  <span class="tok-fn">return</span>(X_dc)
+}</code></pre>
+
+        <p>Variance in Dimension 1 drops from 86.1% to <strong>60.5%</strong>. The CDU/CSU emerges as the most extreme party, surpassing the AfD. Once we control for baseline yes-rates, the CDU/CSU's high volume of subsequently rejected motions makes them the structural antipode of the government.</p>
+
+        <figure>
+          <img src="dc_svd_dim1_by_party.png" alt="DC-SVD Dimension 1 by party">
+          <figcaption>Figure 4: DC-SVD Dimension 1 by party. Baseline effects removed.</figcaption>
+        </figure>
+      </section>
+
+      <section id="irt">
+        <h2>Bayesian 2-PL IRT</h2>
+        <p>SVD produces no uncertainty estimates. We fit a two-parameter logistic IRT model via <code>brms</code> / Stan to extract proper likelihoods and posterior distributions.</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Task 4.2 — Model Specification & Priors (04_irt_model.R)</span>
+irt_formula_2pl &lt;- <span class="tok-fn">bf</span>(
+ response | <span class="tok-fn">trials</span>(<span class="tok-num">1</span>) ~ <span class="tok-fn">exp</span>(logalpha) * (theta - beta),
+ theta    ~ <span class="tok-num">0</span> + (<span class="tok-num">1</span> | person),
+ beta     ~ <span class="tok-num">0</span> + (<span class="tok-num">1</span> | item),
+ logalpha ~ <span class="tok-num">0</span> + (<span class="tok-num">1</span> | item),
+ nl       = TRUE
+)
+
+irt_priors &lt;- <span class="tok-fn">c</span>(
+ <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">1</span>),   class = <span class="tok-str">"sd"</span>, nlpar = <span class="tok-str">"theta"</span>),
+ <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">2</span>),   class = <span class="tok-str">"sd"</span>, nlpar = <span class="tok-str">"beta"</span>),
+ <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">0.5</span>), class = <span class="tok-str">"sd"</span>, nlpar = <span class="tok-str">"logalpha"</span>)
+)</code></pre>
+
+        <figure>
+          <img src="posterior_party_distributions.png" alt="Posterior party distributions">
+          <figcaption>Figure 8: Posterior distributions of party mean ideal points.</figcaption>
+        </figure>
+      </section>
+
+      <section id="findings">
+        <h2>Substantive Claim Evaluation</h2>
+        <p><strong>Claim:</strong> <em>The FDP's position in the Ampel coalition was ideologically closer to CDU/CSU than to SPD/Grüne.</em></p>
+        <p>Rather than relying on point estimates, we draw jointly from the posterior distributions of all three party means and compute — for each MCMC sample — whether the FDP is closer to CDU/CSU or to SPD.</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># Task 5.3 — Pairwise & Group Ordering Probabilities (05_substantive_evaluation.R)</span>
+<span class="tok-com"># P(|FDP - CDU| < |FDP - SPD|) — "FDP closer to CDU than SPD"</span>
+dist_fdp_cdu &lt;- <span class="tok-fn">abs</span>(fdp_draws - cdu_draws)
+dist_fdp_spd &lt;- <span class="tok-fn">abs</span>(fdp_draws - spd_draws)
+p_closer_to_cdu &lt;- <span class="tok-fn">mean</span>(dist_fdp_cdu &lt; dist_fdp_spd)
+
+<span class="tok-fn">cat</span>(<span class="tok-fn">sprintf</span>(<span class="tok-str">"P(FDP closer to CDU/CSU than to SPD): %.3f\n"</span>, p_closer_to_cdu))
+<span class="tok-com"># Result: 0.000</span></code></pre>
+
+        <div class="finding">
+          <span class="finding-label">Empirical Verdict</span>
+          The Bayesian posterior rejects the claim with P = 0.0%: in every single posterior draw, the FDP is closer to the SPD and Grüne than to the CDU/CSU. Roll-call data measures constrained behavior under the Koalitionsvertrag, not latent ideological desires communicated in public.
+        </div>
+      </section>
+
+    </article>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <p>DS201 Qualifier · Universität Mannheim</p>
+    </div>
+  </footer>
+
+  <script>
+    // Interaktives JS-Snippet zur Filterung der SVD-Tabelle
+    document.getElementById('partyFilter').addEventListener('change', function() {
+      const filterValue = this.value;
+      const rowsCoalition = document.querySelectorAll('.row-coalition');
+      const rowsOpposition = document.querySelectorAll('.row-opposition');
+      
+      rowsCoalition.forEach(row => {
+        row.style.display = (filterValue === 'all' || filterValue === 'coalition') ? '' : 'none';
+      });
+      
+      rowsOpposition.forEach(row => {
+        row.style.display = (filterValue === 'all' || filterValue === 'opposition') ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
