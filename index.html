@@ -229,22 +229,14 @@ table.data td { padding: 0.75rem; border-bottom: 1px solid var(--rule); }
 table.data td.num { font-family: var(--font-mono); text-align: right; }
 .party-chip { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 0.5rem; vertical-align: middle; }
 
-/* ---- Interaktiv ---- */
-.interactive-controls {
-  margin-bottom: 1rem;
-  padding: 1rem;
-  background: var(--paper-warm);
+/* ---- Interactive Embeds ---- */
+.interactive-frame {
+  width: 100%;
+  height: 600px;
   border: 1px solid var(--rule);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.interactive-controls select {
-  padding: 0.5rem;
-  font-family: var(--font-sans);
-  border: 1px solid var(--rule-strong);
-  border-radius: 4px;
+  border-radius: 6px;
+  margin: 2rem 0;
+  background: var(--paper-warm);
 }
 
 /* ---- Footer ---- */
@@ -306,10 +298,8 @@ footer { background: var(--uni-navy); color: var(--paper); padding: 3rem var(--g
   <span class="tok-com"># row_means[i] + col_means[j] in one go</span>
   imputed_values &lt;- <span class="tok-fn">outer</span>(row_means, col_means, <span class="tok-str">"+"</span>) - grand_mean
   
-  <span class="tok-com"># Nur dort einsetzen, wo NA war</span>
+  <span class="tok-com"># Clip to [0, 1] bounds</span>
   X_imp &lt;- <span class="tok-fn">ifelse</span>(<span class="tok-fn">is.na</span>(X), imputed_values, X)
-  
-  <span class="tok-com"># Auf [0, 1] clips</span>
   X_imp &lt;- <span class="tok-fn">pmin</span>(<span class="tok-fn">pmax</span>(X_imp, <span class="tok-num">0</span>), <span class="tok-num">1</span>)
   
   <span class="tok-fn">return</span>(X_imp)
@@ -327,7 +317,7 @@ U &lt;- svd_result$u
 d &lt;- svd_result$d
 V &lt;- svd_result$v
 
-<span class="tok-com"># Sign anchoring: AfD positiv, SPD negativ</span>
+<span class="tok-com"># Sign anchoring: AfD positive, SPD negative</span>
 afd_d1 &lt;- <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>][mp_info$fraction_modal == <span class="tok-str">"AfD"</span>])
 spd_d1 &lt;- <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>][mp_info$fraction_modal == <span class="tok-str">"SPD"</span>])
 
@@ -337,37 +327,26 @@ spd_d1 &lt;- <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>
 }</code></pre>
 
         <h3>a) The two sides of Dimension 1</h3>
-        
-        <div class="interactive-controls">
-          <label for="partyFilter"><strong>Interaktiver Filter:</strong> Wähle eine Fraktion, um die Tabelle zu filtern:</label>
-          <select id="partyFilter">
-            <option value="all">Alle Fraktionen anzeigen</option>
-            <option value="coalition">Nur Regierung (Ampel)</option>
-            <option value="opposition">Nur Opposition</option>
-          </select>
-        </div>
 
         <div class="table-wrap">
-          <table class="data" id="svdTable">
+          <table class="data">
             <caption>Table 1 · Party means on SVD Dimension 1</caption>
             <thead><tr><th>Party</th><th class="num">Mean Dim 1</th><th class="num">SD</th><th>Role</th></tr></thead>
             <tbody>
-              <tr class="row-coalition"><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>          <td class="num">−0.0427</td><td class="num">0.00133</td><td>Coalition</td></tr>
-              <tr class="row-coalition"><td><span class="party-chip" style="background:#1AA037"></span>Grüne</td>       <td class="num">−0.0424</td><td class="num">0.00199</td><td>Coalition</td></tr>
-              <tr class="row-coalition"><td><span class="party-chip" style="background:#FFED00"></span>FDP</td>           <td class="num">−0.0424</td><td class="num">0.00089</td><td>Coalition</td></tr>
-              <tr class="row-opposition"><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>      <td class="num">−0.0297</td><td class="num">0.00198</td><td>Opposition</td></tr>
-              <tr class="row-opposition"><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>   <td class="num">−0.0135</td><td class="num">0.00256</td><td>Opposition</td></tr>
-              <tr class="row-opposition"><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>          <td class="num">−0.0109</td><td class="num">0.00232</td><td>Opposition</td></tr>
+              <tr><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>          <td class="num">−0.0427</td><td class="num">0.00133</td><td>Coalition</td></tr>
+              <tr><td><span class="party-chip" style="background:#1AA037"></span>Grüne</td>       <td class="num">−0.0424</td><td class="num">0.00199</td><td>Coalition</td></tr>
+              <tr><td><span class="party-chip" style="background:#FFED00"></span>FDP</td>           <td class="num">−0.0424</td><td class="num">0.00089</td><td>Coalition</td></tr>
+              <tr><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>      <td class="num">−0.0297</td><td class="num">0.00198</td><td>Opposition</td></tr>
+              <tr><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>   <td class="num">−0.0135</td><td class="num">0.00256</td><td>Opposition</td></tr>
+              <tr><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>          <td class="num">−0.0109</td><td class="num">0.00232</td><td>Opposition</td></tr>
             </tbody>
           </table>
         </div>
 
-        <p>Dieses räumliche Clustering macht aus institutioneller Sicht absolut Sinn: Die Tabelle trennt präzise zwischen der Regierung (SPD, Grüne, FDP eng beieinander) und der Opposition. <strong>Genau hier zeigt sich jedoch die methodische Grenze der puren SVD für ideologische Skalierung:</strong> Da sie das Verhalten auf eine Dimension zwingt, rücken die AfD und Die Linke extrem nah zusammen. Ideologisch haben diese Parteien praktisch keine Schnittmenge – die SVD misst an dieser Stelle also keinen Links-Rechts-Kompass, sondern vielmehr ein reines Block-Verhalten (Zustimmung vs. systematische Ablehnung von Regierungsvorlagen).</p>
+        <p>This spatial clustering makes perfect sense from an institutional perspective: The model precisely separates the government coalition (SPD, Grüne, FDP clustered tightly together) from the opposition blocs. </p>
+        <p><strong>However, this also reveals the methodological limits of using a raw SVD for ideological scaling:</strong> By forcing voting behavior onto a single mathematical dimension, the algorithm pushes the AfD and Die Linke extremely close together. Ideologically, these two parties have virtually no overlap. The SVD is fundamentally blind to <em>why</em> a party votes "No". It simply registers that both parties systematically reject government bills. Therefore, Dimension 1 is not measuring a traditional left-right political compass, but rather pure bloc behavior (approval vs. opposition of the government agenda).</p>
 
-        <figure>
-          <img src="svd_dim1_by_party.png" alt="SVD Dimension 1 by party">
-          <figcaption>Figure 1: SVD Dimension 1 by party. SPD, Grüne, and FDP cluster near −0.042.</figcaption>
-        </figure>
+        <iframe src="svd_interactive.html" class="interactive-frame" title="Interactive SVD Plot"></iframe>
 
         <h3>b) Variance explained by Dimension 1</h3>
         <p>The proportion of variance explained confirms that one structural cleavage dominates everything else in this parliament.</p>
@@ -381,7 +360,7 @@ cum_var       &lt;- <span class="tok-fn">cumsum</span>(var_explained)
 
       <section id="dcsvd">
         <h2>Double-Centered SVD</h2>
-        <p>To strip out baseline tendencies — some MPs vote yes more often; some bills pass more easily — we double-center the matrix before decomposing it:</p>
+        <p>To strip out baseline tendencies — some MPs vote yes more often; some bills pass more easily — we double-center the matrix before decomposing it. This isolates the pure polarization underlying the votes.</p>
 
         <pre data-lang="R"><code><span class="tok-com"># Task 3.1 — Apply Double-Centering (03_double_centered_svd.R)</span>
 <span class="tok-fn">double_center</span> &lt;- <span class="tok-kw">function</span>(X) {
@@ -398,17 +377,14 @@ cum_var       &lt;- <span class="tok-fn">cumsum</span>(var_explained)
   <span class="tok-fn">return</span>(X_dc)
 }</code></pre>
 
-        <p>Variance in Dimension 1 drops from 86.1% to <strong>60.5%</strong>. The CDU/CSU emerges as the most extreme party, surpassing the AfD. Once we control for baseline yes-rates, the CDU/CSU's high volume of subsequently rejected motions makes them the structural antipode of the government.</p>
+        <p>Variance in Dimension 1 drops from 86.1% to <strong>60.5%</strong>. The CDU/CSU emerges as the most extreme party, surpassing the AfD. Once we mathematically control for the baseline success rates of bills, the CDU/CSU's high volume of subsequently rejected alternative motions makes them the structural antipode of the government.</p>
 
-        <figure>
-          <img src="dc_svd_dim1_by_party.png" alt="DC-SVD Dimension 1 by party">
-          <figcaption>Figure 4: DC-SVD Dimension 1 by party. Baseline effects removed.</figcaption>
-        </figure>
+        <iframe src="dc_svd_interactive.html" class="interactive-frame" title="Interactive Double-Centered SVD Plot"></iframe>
       </section>
 
       <section id="irt">
         <h2>Bayesian 2-PL IRT</h2>
-        <p>SVD produces no uncertainty estimates. We fit a two-parameter logistic IRT model via <code>brms</code> / Stan to extract proper likelihoods and posterior distributions.</p>
+        <p>SVD produces no uncertainty estimates. We fit a two-parameter logistic IRT model via <code>brms</code> / Stan to extract proper likelihoods and posterior distributions, separating legislator positions ($\theta_i$) from vote difficulty ($\beta_j$) and discrimination ($\alpha_j$).</p>
 
         <pre data-lang="R"><code><span class="tok-com"># Task 4.2 — Model Specification & Priors (04_irt_model.R)</span>
 irt_formula_2pl &lt;- <span class="tok-fn">bf</span>(
@@ -427,7 +403,7 @@ irt_priors &lt;- <span class="tok-fn">c</span>(
 
         <figure>
           <img src="posterior_party_distributions.png" alt="Posterior party distributions">
-          <figcaption>Figure 8: Posterior distributions of party mean ideal points.</figcaption>
+          <figcaption>Figure 8: Posterior distributions of party mean ideal points. The FDP posterior is strikingly narrow, reflecting exceptional voting cohesion.</figcaption>
         </figure>
       </section>
 
@@ -447,7 +423,7 @@ p_closer_to_cdu &lt;- <span class="tok-fn">mean</span>(dist_fdp_cdu &lt; dist_fd
 
         <div class="finding">
           <span class="finding-label">Empirical Verdict</span>
-          The Bayesian posterior rejects the claim with P = 0.0%: in every single posterior draw, the FDP is closer to the SPD and Grüne than to the CDU/CSU. Roll-call data measures constrained behavior under the Koalitionsvertrag, not latent ideological desires communicated in public.
+          The Bayesian posterior rejects the claim with P = 0.0%: in every single posterior draw, the FDP is closer to the SPD and Grüne than to the CDU/CSU. While public debates often highlighted policy friction, the formal roll-call data measures behavior constrained by the Koalitionsvertrag. Under strict coalition discipline, the FDP functioned as an integrated block within the governing majority.
         </div>
       </section>
 
@@ -460,21 +436,5 @@ p_closer_to_cdu &lt;- <span class="tok-fn">mean</span>(dist_fdp_cdu &lt; dist_fd
     </div>
   </footer>
 
-  <script>
-    // Interaktives JS-Snippet zur Filterung der SVD-Tabelle
-    document.getElementById('partyFilter').addEventListener('change', function() {
-      const filterValue = this.value;
-      const rowsCoalition = document.querySelectorAll('.row-coalition');
-      const rowsOpposition = document.querySelectorAll('.row-opposition');
-      
-      rowsCoalition.forEach(row => {
-        row.style.display = (filterValue === 'all' || filterValue === 'coalition') ? '' : 'none';
-      });
-      
-      rowsOpposition.forEach(row => {
-        row.style.display = (filterValue === 'all' || filterValue === 'opposition') ? '' : 'none';
-      });
-    });
-  </script>
 </body>
 </html>
