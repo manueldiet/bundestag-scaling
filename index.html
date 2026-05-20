@@ -618,7 +618,7 @@ footer {
       <p class="deck">Three estimators — a baseline SVD, its double-centered counterpart, and a Bayesian 2-PL IRT model — applied to 161 roll-call votes of the Ampel coalition. What emerges is less a left–right axis than a strict record of institutional roles: who governed and who opposed.</p>
       <div class="byline">
         <span><strong>By Manuel Dieterle</strong></span>
-        <span>Universität Mannheim · School of Social Sciences</span>
+        <span>Universität Mannheim · Social Data Science</span>
       </div>
     </div>
   </section>
@@ -961,18 +961,85 @@ fit_2pl <span class="tok-op">&lt;-</span> <span class="tok-fn">brm</span>(
         <p class="code-caption">Code 5 · From <code>04_irt_model_alt.R</code> — actual sampler configuration used</p>
 
         <h3>Priors</h3>
-        <div class="table-wrap">
-          <table class="data">
-            <caption>Table 5 · Prior specifications for the 2-PL IRT model</caption>
-            <thead><tr><th>Parameter</th><th>Prior</th><th>Rationale</th></tr></thead>
-            <tbody>
-              <tr><td>Ideal points θ<sub>i</sub></td><td><code>Normal(0, 1)</code></td><td>Centered, unit-scale identification prior.</td></tr>
-              <tr><td>Difficulty β<sub>j</sub></td><td><code>Normal(0, 2)</code></td><td>Votes located anywhere on the continuum; regularizes near-unanimous votes.</td></tr>
-              <tr><td>log(Discrimination α<sub>j</sub>)</td><td><code>Normal(0, 0.5)</code></td><td>Log-scale ensures α<sub>j</sub> &gt; 0; equivalent to LogNormal(0, 0.5) on raw scale.</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p><strong>Sampler configuration.</strong> 2 chains × 800 iterations (400 warmup), <code>adapt_delta = 0.85</code>, max tree depth 12. AfD anchored positive ex-post. The chain count and iteration budget were reduced from the canonical 4 × 2000 due to hardware constraints; convergence diagnostics (Rhat &lt; 1.01, ESS &gt; 200 for all party-mean quantities of interest) are still acceptable, but individual-MP posteriors are noisier than they would be at full budget.</p>
+<p>Four explicit priors were set; none are brms defaults. The choices follow
+standard weakly-informative practice for logistic IRT models:</p>
+
+<div class="table-wrap">
+  <table class="data">
+    <caption>Table 5 · Prior specifications for the 2-PL IRT model</caption>
+    <thead>
+      <tr>
+        <th>Parameter</th>
+        <th>brms argument</th>
+        <th>Prior</th>
+        <th>Rationale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>SD of ideal points θ<sub>i</sub> across legislators</td>
+        <td><code>sd, group = "person", nlpar = "theta"</code></td>
+        <td><code>Normal(0, 1)</code></td>
+        <td>Places 95% of the prior mass on legislator SDs below ≈ 2. Keeps the
+        scale of θ interpretable and prevents extreme shrinkage or
+        expansion.</td>
+      </tr>
+      <tr>
+        <td>SD of vote difficulty β<sub>j</sub> across items</td>
+        <td><code>sd, group = "item", nlpar = "theta"</code></td>
+        <td><code>Normal(0, 2)</code></td>
+        <td>Deliberately wider than the person prior: votes can span a broader
+        range of difficulty than legislators span ideologically. Also
+        regularizes near-unanimous votes whose difficulty would otherwise
+        push to ±∞.</td>
+      </tr>
+      <tr>
+        <td>Population-mean log-discrimination log(ᾱ)</td>
+        <td><code>b, nlpar = "logalpha"</code></td>
+        <td><code>Normal(0, 1)</code></td>
+        <td>On the log scale, this places the prior on raw discrimination
+        (α = e<sup>logα</sup>) as a LogNormal(0, 1) — 95% of the prior mass
+        falls between α ≈ 0.14 and α ≈ 7.4. Equivalent to saying: most
+        votes discriminate at moderate strength, with tails allowed for very
+        flat or very steep response curves.</td>
+      </tr>
+      <tr>
+        <td>SD of log-discrimination across items</td>
+        <td><code>sd, group = "item", nlpar = "logalpha"</code></td>
+        <td><code>Normal(0, 0.5)</code></td>
+        <td>Intentionally tight: shrinks item-level discrimination toward the
+        population mean. This prevents a handful of highly polarising votes
+        from dominating the entire latent scale — a known instability in
+        2-PL models fitted to roll-call data.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="answer">
+  <span class="answer-label">Answer — Question iv) Priors</span>
+  <p>All four priors are <strong>weakly informative</strong> in the sense of Gelman et al. (2017):
+  they are not flat, but they place most mass on plausible values while
+  remaining permissive enough to be overridden by data. The key design
+  decisions are: <strong>(1)</strong> the person SD prior is tighter than the item SD
+  prior, reflecting the empirical reality that legislative ideal points
+  cluster by party while vote difficulties are more dispersed;
+  <strong>(2)</strong> the discrimination parameters are modelled on the log scale to
+  enforce positivity (α<sub>j</sub> > 0) without a hard constraint;
+  <strong>(3)</strong> the tight Normal(0, 0.5) prior on item-level discrimination
+  heterogeneity acts as a regularizer, stabilising the sampler on a
+  matrix with 161 votes and 772 legislators where some items are
+  near-unanimous even after the 5%–95% filter.</p>
+</div>
+
+<p><strong>Sampler configuration.</strong> 2 chains × 800 iterations (400 warmup),
+<code>adapt_delta = 0.85</code>, max tree depth 12. The chain count and iteration
+budget were reduced from the canonical 4 × 2000 due to hardware
+constraints; convergence diagnostics (R̂ &lt; 1.01, ESS &gt; 200 for all
+party-mean quantities of interest) remain acceptable, but individual-MP
+posteriors are noisier than they would be at full budget. Sign
+identification: AfD anchored positive ex-post by flipping θ if
+mean(θ<sub>AfD</sub>) &lt; mean(θ<sub>SPD</sub>).</p>
 
         <h3>Comparison to SVD</h3>
         <div class="table-wrap">
@@ -1133,7 +1200,7 @@ p_closer_to_cdu <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</spa
 
 <section id="ai-docs">
   <h2>viii. AI Documentation</h2>
-  <p>This project were developed with the assistance of large language models. The models used were <strong>Claude Sonnet 4.6</strong>, <strong>Claude Opus 4.6</strong>, and <strong>Claude Opus 4.7</strong> (Anthropic), as well as <strong>Gemini 3.1 Pro</strong> and <strong>Gemini 3.5 Flash</strong> (Google DeepMind). AI assistance was used for code debugging, methodological discussion, and drafting written explanations; all final analytical decisions and final results were verified and approved by the author.</p>
+  <p>This project was developed with the assistance of large language models. The models used were <strong>Claude Sonnet 4.6</strong>, <strong>Claude Opus 4.6</strong>, and <strong>Claude Opus 4.7</strong> (Anthropic), as well as <strong>Gemini 3.1 Pro</strong> and <strong>Gemini 3.5 Flash</strong> (Google DeepMind). AI assistance was used for code debugging, methodological discussion, and drafting written explanations; all final analytical decisions and final results were verified and approved by the author.</p>
   <p>In the interest of transparency and reproducibility, the full chat logs for all AI-assisted sessions are preserved and publicly available in the <a href="https://github.com/manueldiet/bundestag-scaling/tree/main/ai-logs"><code>ai-logs/</code> folder of this repository</a>.</p>
 </section>
 
@@ -1144,7 +1211,7 @@ p_closer_to_cdu <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</spa
     <div class="footer-inner">
       <div>
         <h4>Project</h4>
-        <p>DS201 · Machine Learning and Causal Inference<br>Universität Mannheim<br>School of Social Sciences</p>
+        <p>DS201 · Machine Learning and Causal Inference<br>Universität Mannheim<br>Chair of Social Data Science</p>
       </div>
       <div>
         <h4>Methods</h4>
