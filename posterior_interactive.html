@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Posterior Distributions of Party Mean Ideal Points</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Inter Tight", sans-serif;
+  background: #FAF8F4;
+  color: #14202A;
+  padding: 1.5rem;
+}
+
+.chart-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6E7A84;
+  margin-bottom: 0.5rem;
+}
+
+.chart-subtitle {
+  font-size: 0.85rem;
+  color: #3B4A56;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  align-items: center;
+}
+
+.controls-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #6E7A84;
+  margin-right: 0.25rem;
+}
+
+.toggle-btn {
+  font-family: "Inter Tight", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.35rem 0.85rem;
+  border: 1.5px solid #D9D2C4;
+  background: transparent;
+  color: #3B4A56;
+  cursor: pointer;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all .15s;
+  user-select: none;
+}
+.toggle-btn:hover { background: rgba(0,0,0,0.03); }
+.toggle-btn.active { border-color: var(--party-color); background: var(--party-bg); font-weight: 600; }
+.toggle-btn .swatch {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+
+.toggle-btn.active .swatch { border-color: var(--party-color); box-shadow: 0 0 0 2px var(--party-bg); }
+
+#chart-container {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+}
+
+svg { display: block; width: 100%; height: auto; }
+
+.axis text {
+  font-family: "Inter Tight", sans-serif;
+  font-size: 11px;
+  fill: #6E7A84;
+}
+.axis line, .axis path { stroke: #D9D2C4; }
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: #1B3A4B;
+  color: #FAF8F4;
+  padding: 0.6rem 0.85rem;
+  border-radius: 2px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: opacity .12s;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.legend-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.78rem;
+}
+
+.stat-card {
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--party-color);
+  background: #F1ECE2;
+  transition: opacity .2s;
+}
+.stat-card.hidden { opacity: 0.25; }
+.stat-card .party-name { font-weight: 600; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.stat-card .stat-row { font-family: "JetBrains Mono", monospace; font-size: 0.75rem; color: #3B4A56; }
+
+.note {
+  margin-top: 1rem;
+  font-size: 0.72rem;
+  color: #6E7A84;
+  font-style: italic;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<div class="chart-title">Figure 8b · Interactive</div>
+<p class="chart-subtitle">
+  Posterior distributions of party-mean ideal points (θ̄) from 800 MCMC draws.
+  Each curve is a kernel density estimate of the posterior distribution of a party's average legislator position.
+  Shaded regions mark the 95% credible interval.
+</p>
+
+<div class="controls">
+  <span class="controls-label">Toggle parties:</span>
+  <button class="toggle-btn active" data-party="SPD" style="--party-color:#E3000F;--party-bg:rgba(227,0,15,0.08)">
+    <span class="swatch" style="background:#E3000F"></span>SPD</button>
+  <button class="toggle-btn active" data-party="Gruene" style="--party-color:#1AA037;--party-bg:rgba(26,160,55,0.08)">
+    <span class="swatch" style="background:#1AA037"></span>Grüne</button>
+  <button class="toggle-btn active" data-party="FDP" style="--party-color:#B8AB00;--party-bg:rgba(255,237,0,0.12)">
+    <span class="swatch" style="background:#FFED00;border-color:#B8AB00"></span>FDP</button>
+  <button class="toggle-btn active" data-party="CDU/CSU" style="--party-color:#222;--party-bg:rgba(0,0,0,0.06)">
+    <span class="swatch" style="background:#000"></span>CDU/CSU</button>
+  <button class="toggle-btn active" data-party="AfD" style="--party-color:#009EE0;--party-bg:rgba(0,158,224,0.08)">
+    <span class="swatch" style="background:#009EE0"></span>AfD</button>
+</div>
+
+<div id="chart-container">
+  <svg id="chart"></svg>
+  <div class="tooltip" id="tooltip"></div>
+</div>
+
+<div class="legend-stats" id="legend-stats"></div>
+
+<p class="note">
+  800 posterior draws per party from a Bayesian 2-PL IRT model (brms/Stan, 2 chains × 800 iter, 400 warmup).
+  Negative θ = coalition side; positive θ = opposition side. Bandwidth: Silverman's rule.
+  The FDP's narrow posterior reflects exceptionally cohesive voting — its credible interval is the tightest of any party.
+</p>
+
+<script>
+const DATA = {"SPD":{"x":[-1.48829,-1.4809,-1.47352,-1.46613,-1.45874,-1.45136,-1.44397,-1.43659,-1.4292,-1.42182,-1.41443,-1.40705,-1.39966,-1.39228,-1.38489,-1.37751,-1.37012,-1.36274,-1.35535,-1.34796,-1.34058,-1.33319,-1.32581,-1.31842,-1.31104,-1.30365,-1.29627,-1.28888,-1.2815,-1.27411,-1.26673,-1.25934,-1.25196,-1.24457,-1.23718,-1.2298,-1.22241,-1.21503,-1.20764,-1.20026,-1.19287,-1.18549,-1.1781,-1.17072,-1.16333,-1.15595,-1.14856,-1.14118,-1.13379,-1.12641,-1.11902,-1.11163,-1.10425,-1.09686,-1.08948,-1.08209,-1.07471,-1.06732,-1.05994,-1.05255,-1.04517,-1.03778,-1.0304,-1.02301,-1.01563,-1.00824,-1.00085,-0.99347,-0.98608,-0.9787,-0.97131,-0.96393,-0.95654,-0.94916,-0.94177,-0.93439,-0.927,-0.91962,-0.91223,-0.90485,-0.89746,-0.89007,-0.88269,-0.8753,-0.86792,-0.86053,-0.85315,-0.84576,-0.83838,-0.83099,-0.82361,-0.81622,-0.80884,-0.80145,-0.79407,-0.78668,-0.77929,-0.77191,-0.76452,-0.75714,-0.74975,-0.74237,-0.73498,-0.7276,-0.72021,-0.71283,-0.70544,-0.69806,-0.69067,-0.68329,-0.6759,-0.66852,-0.66113,-0.65374,-0.64636,-0.63897,-0.63159,-0.6242,-0.61682,-0.60943,-0.60205,-0.59466,-0.58728,-0.57989,-0.57251,-0.56512,-0.55774,-0.55035,-0.54296,-0.53558,-0.52819,-0.52081,-0.51342,-0.50604,-0.49865,-0.49127,-0.48388,-0.4765,-0.46911,-0.46173,-0.45434,-0.44696,-0.43957,-0.43218,-0.4248,-0.41741,-0.41003,-0.40264,-0.39526,-0.38787,-0.38049,-0.3731,-0.36572,-0.35833,-0.35095,-0.34356,-0.33618,-0.32879,-0.3214,-0.31402,-0.30663,-0.29925,-0.29186,-0.28448,-0.27709,-0.26971,-0.26232,-0.25494,-0.24755,-0.24017,-0.23278,-0.2254,-0.21801,-0.21063,-0.20324,-0.19585,-0.18847,-0.18108,-0.1737,-0.16631,-0.15893,-0.15154,-0.14416,-0.13677,-0.12939,-0.122,-0.11462,-0.10723,-0.09985,-0.09246,-0.08507,-0.07769,-0.0703,-0.06292,-0.05553,-0.04815,-0.04076,-0.03338,-0.02599,-0.01861],"y":[0.00011,0.00016,0.00024,0.00033,0.00046,0.00064,0.00086,0.00116,0.00154,0.00202,0.00262,0.00336,0.00427,0.00537,0.00668,0.00824,0.01006,0.01218,0.01461,0.01738,0.02052,0.02404,0.02796,0.03227,0.03699,0.04212,0.04763,0.05351,0.05974,0.06627,0.07307,0.08009,0.08726,0.09454,0.10187,0.1092,0.11646,0.12361,0.13061,0.1374,0.14396,0.15024,0.1562,0.16182,0.16705,0.17188,0.17627,0.18021,0.1837,0.18676,0.18942,0.19175,0.19384,0.19581,0.19779,0.19995,0.20248,0.20555,0.20936,0.21408,0.21988,0.2269,0.23526,0.24505,0.25633,0.26912,0.28341,0.29918,0.31634,0.3348,0.35443,0.37506,0.39649,0.4185,0.44082,0.46318,0.48528,0.50683,0.52753,0.54711,0.56533,0.58202,0.59705,0.61036,0.62196,0.63195,0.64048,0.64778,0.65409,0.65974,0.66503,0.6703,0.67587,0.68205,0.68909,0.69724,0.70669,0.71758,0.73002,0.74405,0.75968,0.7769,0.79562,0.81577,0.83722,0.85985,0.88352,0.9081,0.93345,0.95946,0.98602,1.01307,1.04055,1.06843,1.09674,1.12552,1.15482,1.18476,1.21544,1.24699,1.27956,1.3133,1.34833,1.38477,1.42272,1.46225,1.50337,1.54606,1.59024,1.63579,1.68252,1.73019,1.77852,1.82716,1.87571,1.92374,1.97075,2.01623,2.05959,2.10021,2.13746,2.17066,2.19911,2.22212,2.23902,2.24918,2.25203,2.2471,2.23403,2.2126,2.18273,2.14451,2.09818,2.04413,1.98287,1.91505,1.84137,1.76263,1.67964,1.59322,1.50422,1.41342,1.32162,1.22955,1.13793,1.04743,0.95866,0.87224,0.78871,0.70857,0.63227,0.56022,0.49273,0.43006,0.37239,0.3198,0.27232,0.22986,0.19228,0.15937,0.13084,0.10639,0.08566,0.06828,0.05387,0.04206,0.0325,0.02485,0.01879,0.01406,0.0104,0.00761,0.0055,0.00394,0.00278,0.00195,0.00134,0.00092,0.00062,0.00041],"mean":-0.5512,"sd":0.2215,"q025":-1.1194,"q975":-0.2606,"n_draws":800},"Gruene":{"x":[-1.13301,-1.12719,-1.12138,-1.11556,-1.10974,-1.10392,-1.0981,-1.09228,-1.08646,-1.08065,-1.07483,-1.06901,-1.06319,-1.05737,-1.05155,-1.04574,-1.03992,-1.0341,-1.02828,-1.02246,-1.01664,-1.01082,-1.00501,-0.99919,-0.99337,-0.98755,-0.98173,-0.97591,-0.9701,-0.96428,-0.95846,-0.95264,-0.94682,-0.941,-0.93518,-0.92937,-0.92355,-0.91773,-0.91191,-0.90609,-0.90027,-0.89446,-0.88864,-0.88282,-0.877,-0.87118,-0.86536,-0.85955,-0.85373,-0.84791,-0.84209,-0.83627,-0.83045,-0.82463,-0.81882,-0.813,-0.80718,-0.80136,-0.79554,-0.78972,-0.78391,-0.77809,-0.77227,-0.76645,-0.76063,-0.75481,-0.74899,-0.74318,-0.73736,-0.73154,-0.72572,-0.7199,-0.71408,-0.70827,-0.70245,-0.69663,-0.69081,-0.68499,-0.67917,-0.67335,-0.66754,-0.66172,-0.6559,-0.65008,-0.64426,-0.63844,-0.63263,-0.62681,-0.62099,-0.61517,-0.60935,-0.60353,-0.59771,-0.5919,-0.58608,-0.58026,-0.57444,-0.56862,-0.5628,-0.55699,-0.55117,-0.54535,-0.53953,-0.53371,-0.52789,-0.52207,-0.51626,-0.51044,-0.50462,-0.4988,-0.49298,-0.48716,-0.48135,-0.47553,-0.46971,-0.46389,-0.45807,-0.45225,-0.44644,-0.44062,-0.4348,-0.42898,-0.42316,-0.41734,-0.41152,-0.40571,-0.39989,-0.39407,-0.38825,-0.38243,-0.37661,-0.3708,-0.36498,-0.35916,-0.35334,-0.34752,-0.3417,-0.33588,-0.33007,-0.32425,-0.31843,-0.31261,-0.30679,-0.30097,-0.29516,-0.28934,-0.28352,-0.2777,-0.27188,-0.26606,-0.26024,-0.25443,-0.24861,-0.24279,-0.23697,-0.23115,-0.22533,-0.21952,-0.2137,-0.20788,-0.20206,-0.19624,-0.19042,-0.1846,-0.17879,-0.17297,-0.16715,-0.16133,-0.15551,-0.14969,-0.14388,-0.13806,-0.13224,-0.12642,-0.1206,-0.11478,-0.10897,-0.10315,-0.09733,-0.09151,-0.08569,-0.07987,-0.07405,-0.06824,-0.06242,-0.0566,-0.05078,-0.04496,-0.03914,-0.03333,-0.02751,-0.02169,-0.01587,-0.01005,-0.00423,0.00159,0.0074,0.01322,0.01904,0.02486],"y":[0.00012,0.00017,0.00023,0.00032,0.00044,0.0006,0.0008,0.00107,0.0014,0.00182,0.00235,0.003,0.0038,0.00478,0.00596,0.00738,0.00907,0.01107,0.01342,0.01616,0.01934,0.02299,0.02715,0.03187,0.03716,0.04306,0.04956,0.05667,0.06437,0.07263,0.0814,0.09061,0.10021,0.1101,0.12021,0.13044,0.14072,0.15097,0.16115,0.17123,0.18118,0.19104,0.20084,0.21065,0.22055,0.23064,0.24104,0.25187,0.26323,0.27524,0.28799,0.30152,0.3159,0.33113,0.34718,0.36402,0.38156,0.39972,0.41837,0.4374,0.45667,0.47606,0.49546,0.51476,0.53389,0.55278,0.57139,0.5897,0.60771,0.62541,0.64283,0.65997,0.67685,0.69349,0.70987,0.72599,0.74182,0.75734,0.77248,0.7872,0.80145,0.81517,0.8283,0.84081,0.85268,0.86389,0.87447,0.88446,0.89392,0.90295,0.91165,0.92017,0.92865,0.93724,0.9461,0.95539,0.96525,0.97581,0.98722,0.99957,1.01298,1.02753,1.04331,1.06041,1.07889,1.09884,1.12033,1.14343,1.1682,1.19469,1.22294,1.25297,1.28475,1.31825,1.35338,1.39002,1.428,1.46711,1.50711,1.54772,1.58865,1.62959,1.67021,1.71023,1.74935,1.78736,1.82404,1.85928,1.89301,1.92523,1.956,1.98547,2.01382,2.04129,2.06815,2.09468,2.12116,2.14787,2.17504,2.20284,2.23139,2.26068,2.29065,2.32109,2.35165,2.38187,2.41111,2.4386,2.46344,2.48457,2.50084,2.51104,2.51391,2.5082,2.49276,2.46657,2.42881,2.37892,2.31663,2.24205,2.15561,2.05815,1.95083,1.83511,1.71274,1.58561,1.45576,1.32521,1.19595,1.06983,0.94851,0.8334,0.72563,0.62604,0.53518,0.4533,0.38042,0.31632,0.2606,0.21272,0.17204,0.13786,0.10946,0.08612,0.06713,0.05185,0.03969,0.0301,0.02261,0.01684,0.01242,0.00908,0.00657,0.00471,0.00335,0.00236,0.00164,0.00113,0.00078,0.00053],"mean":-0.4049,"sd":0.185,"q025":-0.8295,"q975":-0.1813,"n_draws":800},"FDP":{"x":[-0.53959,-0.53651,-0.53343,-0.53035,-0.52726,-0.52418,-0.5211,-0.51802,-0.51494,-0.51186,-0.50877,-0.50569,-0.50261,-0.49953,-0.49645,-0.49336,-0.49028,-0.4872,-0.48412,-0.48104,-0.47795,-0.47487,-0.47179,-0.46871,-0.46563,-0.46255,-0.45946,-0.45638,-0.4533,-0.45022,-0.44714,-0.44405,-0.44097,-0.43789,-0.43481,-0.43173,-0.42864,-0.42556,-0.42248,-0.4194,-0.41632,-0.41324,-0.41015,-0.40707,-0.40399,-0.40091,-0.39783,-0.39474,-0.39166,-0.38858,-0.3855,-0.38242,-0.37933,-0.37625,-0.37317,-0.37009,-0.36701,-0.36393,-0.36084,-0.35776,-0.35468,-0.3516,-0.34852,-0.34543,-0.34235,-0.33927,-0.33619,-0.33311,-0.33003,-0.32694,-0.32386,-0.32078,-0.3177,-0.31462,-0.31153,-0.30845,-0.30537,-0.30229,-0.29921,-0.29612,-0.29304,-0.28996,-0.28688,-0.2838,-0.28072,-0.27763,-0.27455,-0.27147,-0.26839,-0.26531,-0.26222,-0.25914,-0.25606,-0.25298,-0.2499,-0.24681,-0.24373,-0.24065,-0.23757,-0.23449,-0.23141,-0.22832,-0.22524,-0.22216,-0.21908,-0.216,-0.21291,-0.20983,-0.20675,-0.20367,-0.20059,-0.1975,-0.19442,-0.19134,-0.18826,-0.18518,-0.1821,-0.17901,-0.17593,-0.17285,-0.16977,-0.16669,-0.1636,-0.16052,-0.15744,-0.15436,-0.15128,-0.14819,-0.14511,-0.14203,-0.13895,-0.13587,-0.13279,-0.1297,-0.12662,-0.12354,-0.12046,-0.11738,-0.11429,-0.11121,-0.10813,-0.10505,-0.10197,-0.09889,-0.0958,-0.09272,-0.08964,-0.08656,-0.08348,-0.08039,-0.07731,-0.07423,-0.07115,-0.06807,-0.06498,-0.0619,-0.05882,-0.05574,-0.05266,-0.04958,-0.04649,-0.04341,-0.04033,-0.03725,-0.03417,-0.03108,-0.028,-0.02492,-0.02184,-0.01876,-0.01567,-0.01259,-0.00951,-0.00643,-0.00335,-0.00027,0.00282,0.0059,0.00898,0.01206,0.01514,0.01823,0.02131,0.02439,0.02747,0.03055,0.03364,0.03672,0.0398,0.04288,0.04596,0.04904,0.05213,0.05521,0.05829,0.06137,0.06445,0.06754,0.07062,0.0737],"y":[0.00025,0.00037,0.00054,0.00077,0.00109,0.00152,0.00207,0.00278,0.00367,0.00477,0.0061,0.00768,0.00953,0.01166,0.01409,0.01681,0.01985,0.02321,0.02692,0.03102,0.03557,0.04063,0.04631,0.05272,0.05998,0.06823,0.07759,0.0882,0.10014,0.11347,0.12817,0.14418,0.16133,0.1794,0.19804,0.21685,0.23536,0.25303,0.26934,0.28379,0.29597,0.30555,0.3124,0.31653,0.31815,0.31767,0.31564,0.31275,0.30972,0.30732,0.30626,0.30712,0.31038,0.31634,0.32513,0.33674,0.351,0.36766,0.38639,0.40685,0.4287,0.45161,0.47533,0.49964,0.52439,0.54948,0.57485,0.6005,0.62648,0.65283,0.67968,0.70712,0.73532,0.76439,0.79448,0.82565,0.85794,0.89129,0.92552,0.96036,0.99542,1.03022,1.06421,1.09684,1.12756,1.15591,1.18154,1.20424,1.22396,1.24077,1.25488,1.26655,1.27608,1.28375,1.28978,1.29436,1.29762,1.29967,1.30066,1.30085,1.30064,1.30064,1.30173,1.30501,1.31185,1.32379,1.34253,1.36981,1.40734,1.45674,1.51944,1.59665,1.68932,1.79812,1.92344,2.0654,2.22389,2.39853,2.58874,2.79371,3.01237,3.24344,3.48535,3.73626,3.99406,4.25636,4.52057,4.78391,5.04354,5.29659,5.54033,5.77221,5.98996,6.19162,6.3756,6.54058,6.68553,6.80958,6.91192,6.99172,7.04804,7.0798,7.08575,7.06456,7.01486,6.93544,6.82532,6.68398,6.51147,6.30851,6.07659,5.81795,5.53559,5.23317,4.91486,4.58524,4.24905,3.9111,3.57599,3.24804,2.93106,2.62833,2.34244,2.07532,1.82822,1.60176,1.39596,1.21041,1.04428,0.89649,0.76577,0.65077,0.55012,0.46246,0.3865,0.32104,0.26494,0.21717,0.17675,0.14279,0.11449,0.09109,0.07189,0.05628,0.04369,0.03363,0.02566,0.01941,0.01454,0.01079,0.00792,0.00576,0.00414,0.00294,0.00206,0.00143,0.00098,0.00066,0.00044,0.00029],"mean":-0.1411,"sd":0.0817,"q025":-0.3627,"q975":-0.0412,"n_draws":800},"CDU/CSU":{"x":[-0.00448,0.00352,0.01152,0.01952,0.02752,0.03552,0.04352,0.05152,0.05951,0.06751,0.07551,0.08351,0.09151,0.09951,0.10751,0.11551,0.12351,0.13151,0.13951,0.14751,0.15551,0.16351,0.17151,0.17951,0.18751,0.19551,0.20351,0.21151,0.21951,0.22751,0.23551,0.24351,0.25151,0.25951,0.26751,0.27551,0.28351,0.2915,0.2995,0.3075,0.3155,0.3235,0.3315,0.3395,0.3475,0.3555,0.3635,0.3715,0.3795,0.3875,0.3955,0.4035,0.4115,0.4195,0.4275,0.4355,0.4435,0.4515,0.4595,0.4675,0.4755,0.4835,0.4915,0.4995,0.5075,0.51549,0.52349,0.53149,0.53949,0.54749,0.55549,0.56349,0.57149,0.57949,0.58749,0.59549,0.60349,0.61149,0.61949,0.62749,0.63549,0.64349,0.65149,0.65949,0.66749,0.67549,0.68349,0.69149,0.69949,0.70749,0.71549,0.72349,0.73149,0.73948,0.74748,0.75548,0.76348,0.77148,0.77948,0.78748,0.79548,0.80348,0.81148,0.81948,0.82748,0.83548,0.84348,0.85148,0.85948,0.86748,0.87548,0.88348,0.89148,0.89948,0.90748,0.91548,0.92348,0.93148,0.93948,0.94748,0.95548,0.96348,0.97147,0.97947,0.98747,0.99547,1.00347,1.01147,1.01947,1.02747,1.03547,1.04347,1.05147,1.05947,1.06747,1.07547,1.08347,1.09147,1.09947,1.10747,1.11547,1.12347,1.13147,1.13947,1.14747,1.15547,1.16347,1.17147,1.17947,1.18747,1.19546,1.20346,1.21146,1.21946,1.22746,1.23546,1.24346,1.25146,1.25946,1.26746,1.27546,1.28346,1.29146,1.29946,1.30746,1.31546,1.32346,1.33146,1.33946,1.34746,1.35546,1.36346,1.37146,1.37946,1.38746,1.39546,1.40346,1.41146,1.41945,1.42745,1.43545,1.44345,1.45145,1.45945,1.46745,1.47545,1.48345,1.49145,1.49945,1.50745,1.51545,1.52345,1.53145,1.53945,1.54745,1.55545,1.56345,1.57145,1.57945,1.58745],"y":[0.0009,0.00129,0.00184,0.00259,0.00362,0.00502,0.00688,0.00934,0.01257,0.01675,0.02213,0.02896,0.03755,0.04825,0.06145,0.07755,0.09701,0.12027,0.1478,0.18005,0.21744,0.26033,0.30901,0.36369,0.42443,0.49118,0.56372,0.64166,0.72442,0.81127,0.90128,0.9934,1.08641,1.17901,1.26984,1.35751,1.44064,1.51793,1.5882,1.6504,1.70365,1.74732,1.78096,1.80437,1.81757,1.82083,1.81457,1.79944,1.77619,1.74572,1.70901,1.66709,1.62102,1.57186,1.52064,1.46835,1.41592,1.3642,1.31396,1.26588,1.22052,1.17837,1.13977,1.105,1.07421,1.04746,1.02471,1.00585,0.99069,0.97898,0.97043,0.9647,0.96146,0.96033,0.96099,0.96309,0.96632,0.97041,0.9751,0.98017,0.98543,0.99074,0.99594,1.00091,1.00555,1.00977,1.01346,1.01655,1.01894,1.02054,1.02129,1.02111,1.01993,1.01772,1.01444,1.01007,1.00464,0.99815,0.99066,0.98223,0.97293,0.96284,0.95203,0.94057,0.92852,0.91595,0.90286,0.88928,0.8752,0.86059,0.84542,0.82964,0.8132,0.79604,0.77813,0.75944,0.73997,0.71971,0.69872,0.67704,0.65477,0.63201,0.60888,0.58552,0.56208,0.53872,0.51559,0.49284,0.47061,0.44905,0.42826,0.40837,0.38947,0.37165,0.35496,0.33947,0.32522,0.31224,0.30055,0.29014,0.281,0.2731,0.26639,0.26079,0.25622,0.25257,0.24969,0.24745,0.24566,0.24416,0.24276,0.24127,0.23951,0.23731,0.23452,0.23101,0.22668,0.22147,0.21535,0.20832,0.20041,0.19168,0.18225,0.17221,0.1617,0.15085,0.13982,0.12874,0.11775,0.10698,0.09654,0.08653,0.07703,0.0681,0.05979,0.05212,0.04512,0.03878,0.03309,0.02802,0.02356,0.01965,0.01627,0.01336,0.01088,0.0088,0.00705,0.0056,0.00441,0.00345,0.00267,0.00205,0.00156,0.00117,0.00088,0.00065,0.00047,0.00034,0.00025,0.00018],"mean":0.6039,"sd":0.2732,"q025":0.2619,"q975":1.2381,"n_draws":800},"AfD":{"x":[0.08664,0.10145,0.11625,0.13106,0.14587,0.16067,0.17548,0.19029,0.20509,0.2199,0.23471,0.24951,0.26432,0.27912,0.29393,0.30874,0.32354,0.33835,0.35316,0.36796,0.38277,0.39758,0.41238,0.42719,0.44199,0.4568,0.47161,0.48641,0.50122,0.51603,0.53083,0.54564,0.56044,0.57525,0.59006,0.60486,0.61967,0.63448,0.64928,0.66409,0.6789,0.6937,0.70851,0.72331,0.73812,0.75293,0.76773,0.78254,0.79735,0.81215,0.82696,0.84176,0.85657,0.87138,0.88618,0.90099,0.9158,0.9306,0.94541,0.96022,0.97502,0.98983,1.00463,1.01944,1.03425,1.04905,1.06386,1.07867,1.09347,1.10828,1.12309,1.13789,1.1527,1.1675,1.18231,1.19712,1.21192,1.22673,1.24154,1.25634,1.27115,1.28595,1.30076,1.31557,1.33037,1.34518,1.35999,1.37479,1.3896,1.40441,1.41921,1.43402,1.44882,1.46363,1.47844,1.49324,1.50805,1.52286,1.53766,1.55247,1.56727,1.58208,1.59689,1.61169,1.6265,1.64131,1.65611,1.67092,1.68573,1.70053,1.71534,1.73014,1.74495,1.75976,1.77456,1.78937,1.80418,1.81898,1.83379,1.8486,1.8634,1.87821,1.89301,1.90782,1.92263,1.93743,1.95224,1.96705,1.98185,1.99666,2.01146,2.02627,2.04108,2.05588,2.07069,2.0855,2.1003,2.11511,2.12992,2.14472,2.15953,2.17433,2.18914,2.20395,2.21875,2.23356,2.24837,2.26317,2.27798,2.29278,2.30759,2.3224,2.3372,2.35201,2.36682,2.38162,2.39643,2.41124,2.42604,2.44085,2.45565,2.47046,2.48527,2.50007,2.51488,2.52969,2.54449,2.5593,2.57411,2.58891,2.60372,2.61852,2.63333,2.64814,2.66294,2.67775,2.69256,2.70736,2.72217,2.73697,2.75178,2.76659,2.78139,2.7962,2.81101,2.82581,2.84062,2.85543,2.87023,2.88504,2.89984,2.91465,2.92946,2.94426,2.95907,2.97388,2.98868,3.00349,3.01829,3.0331],"y":[0.00039,0.00057,0.00082,0.00117,0.00164,0.00228,0.00314,0.00429,0.00579,0.00775,0.01027,0.01348,0.01752,0.02257,0.0288,0.03641,0.04561,0.05663,0.0697,0.08503,0.10285,0.12333,0.14664,0.17291,0.2022,0.23453,0.26984,0.30799,0.34877,0.39187,0.43692,0.48346,0.53096,0.57885,0.6265,0.67327,0.71852,0.76162,0.80199,0.83912,0.87255,0.90194,0.92703,0.94769,0.96387,0.97563,0.98313,0.98659,0.98631,0.98264,0.97593,0.96657,0.95494,0.94141,0.92631,0.90996,0.89264,0.87459,0.85603,0.83714,0.81808,0.799,0.78,0.76122,0.74273,0.72466,0.70709,0.69011,0.67383,0.65833,0.64369,0.63,0.61734,0.60575,0.5953,0.58599,0.57785,0.57083,0.56491,0.56001,0.55603,0.55284,0.55032,0.54831,0.54665,0.54519,0.54378,0.54227,0.54054,0.53849,0.53605,0.53317,0.5298,0.52595,0.52162,0.51684,0.51164,0.50607,0.50015,0.49394,0.48747,0.48077,0.47385,0.46674,0.45944,0.45194,0.44424,0.4363,0.42811,0.41964,0.41084,0.40169,0.39216,0.3822,0.37181,0.36097,0.34968,0.33796,0.32585,0.31339,0.30066,0.28775,0.27475,0.26176,0.24891,0.23632,0.22408,0.21232,0.20113,0.19059,0.18077,0.17173,0.1635,0.15609,0.14953,0.14379,0.13887,0.13474,0.13136,0.12868,0.12667,0.12526,0.1244,0.124,0.124,0.12431,0.12484,0.12548,0.12614,0.12671,0.12708,0.12715,0.12684,0.12607,0.12477,0.1229,0.12043,0.11736,0.11372,0.10953,0.10486,0.09977,0.09435,0.08867,0.08282,0.0769,0.07097,0.06512,0.05941,0.05389,0.04861,0.0436,0.03889,0.03449,0.03041,0.02665,0.02322,0.0201,0.01729,0.01477,0.01252,0.01054,0.00881,0.0073,0.006,0.00489,0.00394,0.00316,0.0025,0.00196,0.00153,0.00118,0.0009,0.00067,0.0005,0.00037,0.00027,0.0002,0.00014,0.0001],"mean":1.191,"sd":0.4855,"q025":0.5718,"q975":2.3696,"n_draws":800}};
+
+const COLORS = {
+  "SPD":     { fill: "rgba(227,0,15,0.12)",   stroke: "#E3000F", ci: "rgba(227,0,15,0.08)" },
+  "Gruene":  { fill: "rgba(26,160,55,0.12)",   stroke: "#1AA037", ci: "rgba(26,160,55,0.08)" },
+  "FDP":     { fill: "rgba(255,237,0,0.18)",   stroke: "#B8AB00", ci: "rgba(255,237,0,0.14)" },
+  "CDU/CSU": { fill: "rgba(0,0,0,0.08)",       stroke: "#222",    ci: "rgba(0,0,0,0.05)" },
+  "AfD":     { fill: "rgba(0,158,224,0.12)",   stroke: "#009EE0", ci: "rgba(0,158,224,0.08)" }
+};
+
+const LABELS = {
+  "SPD": "SPD", "Gruene": "Grüne", "FDP": "FDP", "CDU/CSU": "CDU/CSU", "AfD": "AfD"
+};
+
+const ORDER = ["AfD", "CDU/CSU", "FDP", "Gruene", "SPD"];
+
+// Chart dimensions
+const margin = { top: 20, right: 25, bottom: 44, left: 50 };
+const W = 720, H = 380;
+const w = W - margin.left - margin.right;
+const h = H - margin.top - margin.bottom;
+
+// Compute global ranges
+let xMin = Infinity, xMax = -Infinity, yMax = 0;
+for (const p of Object.keys(DATA)) {
+  const d = DATA[p];
+  xMin = Math.min(xMin, d.x[0]);
+  xMax = Math.max(xMax, d.x[d.x.length - 1]);
+  yMax = Math.max(yMax, Math.max(...d.y));
+}
+// Pad
+xMin -= 0.15; xMax += 0.15; yMax *= 1.08;
+
+function xScale(v) { return (v - xMin) / (xMax - xMin) * w; }
+function yScale(v) { return h - (v / yMax) * h; }
+
+const svg = document.getElementById("chart");
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+// Defs for clip
+let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+svg.appendChild(defs);
+
+// Main group
+function g(parent) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  parent.appendChild(el);
+  return el;
+}
+const root = g(svg);
+root.setAttribute("transform", `translate(${margin.left},${margin.top})`);
+
+// Grid lines
+const gridG = g(root);
+const nTicks = 8;
+for (let i = 0; i <= nTicks; i++) {
+  const xv = xMin + (xMax - xMin) * i / nTicks;
+  const px = xScale(xv);
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", px); line.setAttribute("x2", px);
+  line.setAttribute("y1", 0); line.setAttribute("y2", h);
+  line.setAttribute("stroke", "#E8E3D9"); line.setAttribute("stroke-width", "0.5");
+  gridG.appendChild(line);
+}
+
+// X axis
+const xAxisG = g(root);
+xAxisG.setAttribute("transform", `translate(0,${h})`);
+const xLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+xLine.setAttribute("x1", 0); xLine.setAttribute("x2", w);
+xLine.setAttribute("y1", 0); xLine.setAttribute("y2", 0);
+xLine.setAttribute("stroke", "#D9D2C4");
+xAxisG.appendChild(xLine);
+
+for (let i = 0; i <= nTicks; i++) {
+  const xv = xMin + (xMax - xMin) * i / nTicks;
+  const px = xScale(xv);
+  const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  tick.setAttribute("x1", px); tick.setAttribute("x2", px);
+  tick.setAttribute("y1", 0); tick.setAttribute("y2", 5);
+  tick.setAttribute("stroke", "#D9D2C4");
+  xAxisG.appendChild(tick);
+  const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  txt.setAttribute("x", px); txt.setAttribute("y", 20);
+  txt.setAttribute("text-anchor", "middle");
+  txt.setAttribute("class", "axis");
+  txt.textContent = xv.toFixed(1);
+  xAxisG.appendChild(txt);
+}
+
+// X axis label
+const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+xLabel.setAttribute("x", w / 2); xLabel.setAttribute("y", 38);
+xLabel.setAttribute("text-anchor", "middle");
+xLabel.setAttribute("class", "axis");
+xLabel.setAttribute("font-size", "11px");
+xLabel.textContent = "← Coalition (Ampel)          θ̄ (Ideal Point)          Opposition →";
+xAxisG.appendChild(xLabel);
+
+// Y axis label
+const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+yLabel.setAttribute("transform", `translate(-35,${h/2}) rotate(-90)`);
+yLabel.setAttribute("text-anchor", "middle");
+yLabel.setAttribute("class", "axis");
+yLabel.setAttribute("font-size", "11px");
+yLabel.textContent = "Posterior Density";
+root.appendChild(yLabel);
+
+// Zero line
+const zeroX = xScale(0);
+if (zeroX > 0 && zeroX < w) {
+  const zl = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  zl.setAttribute("x1", zeroX); zl.setAttribute("x2", zeroX);
+  zl.setAttribute("y1", 0); zl.setAttribute("y2", h);
+  zl.setAttribute("stroke", "#1B3A4B"); zl.setAttribute("stroke-width", "1");
+  zl.setAttribute("stroke-dasharray", "4,3"); zl.setAttribute("opacity", "0.4");
+  root.appendChild(zl);
+}
+
+// Draw party curves
+const partyGroups = {};
+for (const party of ORDER) {
+  const d = DATA[party];
+  const c = COLORS[party];
+  const pg = g(root);
+  pg.setAttribute("class", "party-group");
+  pg.dataset.party = party;
+  partyGroups[party] = pg;
+
+  // CI shading
+  const ciPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  let ciD = "";
+  const ciIdxStart = d.x.findIndex(x => x >= d.q025);
+  const ciIdxEnd = d.x.findIndex(x => x > d.q975);
+  const endIdx = ciIdxEnd === -1 ? d.x.length - 1 : ciIdxEnd;
+  for (let i = ciIdxStart; i <= endIdx; i++) {
+    const px = xScale(d.x[i]), py = yScale(d.y[i]);
+    ciD += (i === ciIdxStart ? "M" : "L") + px + "," + py;
+  }
+  for (let i = endIdx; i >= ciIdxStart; i--) {
+    ciD += "L" + xScale(d.x[i]) + "," + yScale(0);
+  }
+  ciD += "Z";
+  ciPath.setAttribute("d", ciD);
+  ciPath.setAttribute("fill", c.ci);
+  ciPath.setAttribute("stroke", "none");
+  pg.appendChild(ciPath);
+
+  // Density curve
+  const curvePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  let curveD = "";
+  for (let i = 0; i < d.x.length; i++) {
+    const px = xScale(d.x[i]), py = yScale(d.y[i]);
+    curveD += (i === 0 ? "M" : "L") + px + "," + py;
+  }
+  curvePath.setAttribute("d", curveD);
+  curvePath.setAttribute("fill", "none");
+  curvePath.setAttribute("stroke", c.stroke);
+  curvePath.setAttribute("stroke-width", "2");
+  pg.appendChild(curvePath);
+
+  // Mean line
+  const meanX = xScale(d.mean);
+  const meanLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  meanLine.setAttribute("x1", meanX); meanLine.setAttribute("x2", meanX);
+  // Find y at mean
+  let yAtMean = 0;
+  for (let i = 0; i < d.x.length - 1; i++) {
+    if (d.x[i] <= d.mean && d.x[i+1] >= d.mean) {
+      const t = (d.mean - d.x[i]) / (d.x[i+1] - d.x[i]);
+      yAtMean = d.y[i] + t * (d.y[i+1] - d.y[i]);
+      break;
+    }
+  }
+  meanLine.setAttribute("y1", yScale(yAtMean));
+  meanLine.setAttribute("y2", yScale(0));
+  meanLine.setAttribute("stroke", c.stroke);
+  meanLine.setAttribute("stroke-width", "1.5");
+  meanLine.setAttribute("stroke-dasharray", "3,2");
+  meanLine.setAttribute("opacity", "0.7");
+  pg.appendChild(meanLine);
+
+  // Mean label
+  const meanLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  meanLabel.setAttribute("x", meanX);
+  meanLabel.setAttribute("y", yScale(yAtMean) - 6);
+  meanLabel.setAttribute("text-anchor", "middle");
+  meanLabel.setAttribute("font-family", "JetBrains Mono, monospace");
+  meanLabel.setAttribute("font-size", "9px");
+  meanLabel.setAttribute("fill", c.stroke);
+  meanLabel.setAttribute("font-weight", "600");
+  meanLabel.textContent = d.mean.toFixed(2);
+  pg.appendChild(meanLabel);
+}
+
+// Toggle logic
+const visible = {};
+ORDER.forEach(p => visible[p] = true);
+
+document.querySelectorAll(".toggle-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const party = btn.dataset.party;
+    visible[party] = !visible[party];
+    btn.classList.toggle("active", visible[party]);
+    partyGroups[party].style.display = visible[party] ? "" : "none";
+    document.querySelectorAll(`.stat-card[data-party="${party}"]`).forEach(c => {
+      c.classList.toggle("hidden", !visible[party]);
+    });
+  });
+});
+
+// Build stat cards
+const statsEl = document.getElementById("legend-stats");
+for (const party of ORDER.slice().reverse()) {
+  const d = DATA[party];
+  const c = COLORS[party];
+  const card = document.createElement("div");
+  card.className = "stat-card";
+  card.dataset.party = party;
+  card.style.setProperty("--party-color", c.stroke);
+  card.innerHTML = `
+    <div class="party-name">${LABELS[party]}</div>
+    <div class="stat-row">θ̄ = ${d.mean.toFixed(3)}</div>
+    <div class="stat-row">95% CI [${d.q025.toFixed(3)}, ${d.q975.toFixed(3)}]</div>
+    <div class="stat-row">SD = ${d.sd.toFixed(3)} · ${d.n_draws} draws</div>
+  `;
+  statsEl.appendChild(card);
+}
+
+// Tooltip on hover
+const tooltip = document.getElementById("tooltip");
+const chartContainer = document.getElementById("chart-container");
+
+svg.addEventListener("mousemove", (e) => {
+  const rect = svg.getBoundingClientRect();
+  const svgX = (e.clientX - rect.left) / rect.width * W - margin.left;
+  const xVal = xMin + (svgX / w) * (xMax - xMin);
+
+  if (svgX < 0 || svgX > w) { tooltip.style.opacity = 0; return; }
+
+  let lines = [`<strong>θ = ${xVal.toFixed(3)}</strong>`];
+  for (const party of ORDER.slice().reverse()) {
+    if (!visible[party]) continue;
+    const d = DATA[party];
+    // Find density at this x
+    let density = 0;
+    for (let i = 0; i < d.x.length - 1; i++) {
+      if (d.x[i] <= xVal && d.x[i+1] >= xVal) {
+        const t = (xVal - d.x[i]) / (d.x[i+1] - d.x[i]);
+        density = d.y[i] + t * (d.y[i+1] - d.y[i]);
+        break;
+      }
+    }
+    if (density > 0.001) {
+      lines.push(`<span style="color:${COLORS[party].stroke === '#222' ? '#aaa' : COLORS[party].stroke}">${LABELS[party]}: ${density.toFixed(3)}</span>`);
+    }
+  }
+
+  if (lines.length > 1) {
+    tooltip.innerHTML = lines.join("<br>");
+    tooltip.style.opacity = 1;
+    const containerRect = chartContainer.getBoundingClientRect();
+    let left = e.clientX - containerRect.left + 12;
+    let top = e.clientY - containerRect.top - 10;
+    if (left + 160 > containerRect.width) left = e.clientX - containerRect.left - 170;
+    tooltip.style.left = left + "px";
+    tooltip.style.top = top + "px";
+  } else {
+    tooltip.style.opacity = 0;
+  }
+});
+
+svg.addEventListener("mouseleave", () => { tooltip.style.opacity = 0; });
+</script>
+</body>
+</html>

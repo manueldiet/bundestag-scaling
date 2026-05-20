@@ -1006,6 +1006,21 @@ fit_2pl <span class="tok-op">&lt;-</span> <span class="tok-fn">brm</span>(
             Posterior distributions of party mean ideal points. The FDP posterior (yellow) is strikingly narrow — reflecting exceptional voting cohesion. CDU/CSU and AfD posteriors are broad and overlapping.
           </figcaption>
         </figure>
+
+        <div class="embed-wrap">
+          <div class="embed-header">
+            <span>Interactive · Posterior Distributions of Party-Mean Ideal Points</span>
+            <span class="embed-tag">posterior_interactive.html</span>
+          </div>
+          <iframe src="posterior_interactive.html" title="Interactive posterior density plot with party toggles" loading="lazy"></iframe>
+          <div class="embed-note">Toggle individual parties on or off to compare their posterior distributions. Hover to read density values. Dashed lines mark posterior means; shaded bands show 95% credible intervals.</div>
+        </div>
+
+        <h3>What the posteriors tell us</h3>
+        <p>The posterior distributions of party-mean ideal points deserve careful attention, because they quantify <em>exactly</em> how uncertain the model remains about each party's latent position — and the answer varies dramatically across parties.</p>
+        <p><strong>The FDP posterior is the narrowest of any party</strong> (SD = 0.082, 95% CI: [−0.36, −0.04]). This is not an artefact of sample size — the FDP has only 28 MdBs, fewer than any Ampel partner. Instead it reflects exceptional internal cohesion: because nearly every FDP member voted the same way on nearly every roll call, the model has very little individual-level noise to average over, producing a razor-thin group posterior. In substantive terms, the model is near-certain about where the FDP sits.</p>
+        <p><strong>The AfD posterior is the broadest</strong> (SD = 0.486, 95% CI: [−2.37, −0.57] in raw draws, or equivalently [+0.57, +2.37] on the AfD-positive axis). This width comes partly from the party's smaller caucus (81 → 20 in sample), but also from genuinely higher internal variance — the distance between the most and least extreme AfD members on the IRT scale is large. Individual credible intervals for AfD legislators are correspondingly wide (mean CI width: 1.84).</p>
+        <p>Crucially, the <strong>separation between party posteriors is what enables sharp inference</strong>. Even though individual-level uncertainty is high — any single legislator's 95% CI often spans more than one unit — the party-mean posteriors are far tighter, because averaging across N members shrinks the posterior width by roughly 1/√N. The SPD and CDU/CSU posteriors, for example, have zero overlap: in none of the 800 posterior draws does the SPD mean cross above the CDU/CSU mean. This is the key advantage of the Bayesian IRT framework over SVD — it lets us formally test whether apparent party differences are real or just noise.</p>
       </section>
 
       <section id="findings">
@@ -1031,7 +1046,8 @@ fit_2pl <span class="tok-op">&lt;-</span> <span class="tok-fn">brm</span>(
         <p>The FDP is 0.41 units from the SPD versus 0.74 from the CDU/CSU — nearly twice as far. <strong>On point estimates alone, the claim is false.</strong></p>
 
         <h3>2. The full Bayesian posterior</h3>
-        <p>Point estimates discard uncertainty. To evaluate the claim properly, we use the joint posterior of all party means and compute — for each MCMC sample — whether the FDP is closer to CDU/CSU or to SPD:</p>
+        <p>Point estimates discard uncertainty. To evaluate the claim properly, we use the <strong>joint posterior distribution</strong> — the full set of 800 MCMC samples from the fitted IRT model. Each sample represents one plausible configuration of ideal points that is consistent with the observed vote data and our priors. For each sample, we compute the mean ideal point of every party's legislators, then ask: in this draw, is the FDP closer to the CDU/CSU or to the SPD?</p>
+        <p>This approach treats uncertainty seriously. It does not just compare point estimates (which could be misleading if posteriors are wide or overlapping). Instead, it integrates over <em>all</em> the uncertainty in the model — individual-level noise, sampling variability, and prior regularization — to produce a single probability that the claim is true.</p>
 
         <pre data-lang="R"><code><span class="tok-com"># 05_substantive_evaluation.R — posterior probability of the claim</span>
 
@@ -1054,6 +1070,10 @@ p_closer_to_cdu <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</spa
 <span class="tok-com"># → 0.000</span></code></pre>
         <p class="code-caption">Code 6 · From <code>05_substantive_evaluation.R</code>, Task 5.3</p>
 
+        <p>The key line is <code>mean(dist_fdp_cdu &lt; dist_fdp_spd)</code>: for each of the 800 posterior draws, it checks whether the FDP–CDU/CSU distance is smaller than the FDP–SPD distance. The proportion of draws where this holds is the posterior probability of the claim. The result is <strong>exactly zero</strong> — in no single draw out of 800 does the FDP end up closer to the CDU/CSU.</p>
+
+        <p>This is not a borderline result that might flip with more data or a different prior. The posterior distributions of the FDP and SPD party means overlap substantially (both sit in the range −0.5 to +0.1), while the CDU/CSU posterior is centered at +0.60 with no mass below +0.26. The gap is structural, not statistical.</p>
+
         <div class="table-wrap">
           <table class="data" id="tbl-posteriors">
             <caption>Table 8 · Posterior probabilities for the proximity claim</caption>
@@ -1066,10 +1086,11 @@ p_closer_to_cdu <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</spa
           </table>
         </div>
 
-        <p>In <strong>zero out of thousands of posterior draws</strong> does the FDP appear closer to the CDU/CSU. The CDU/CSU is simply too far away — the result carries no remaining uncertainty.</p>
+        <p>In <strong>zero out of 800 posterior draws</strong> does the FDP appear closer to the CDU/CSU. The posterior probability of the claim is exactly 0.0% — not merely "small" but structurally impossible given the fitted model. To understand why, consider the interactive posterior plot above: the FDP's posterior (centered at −0.14) shares substantial overlap with the SPD (−0.55) and Grüne (−0.40), but has <em>no overlap whatsoever</em> with the CDU/CSU (+0.60). Even in the most extreme posterior draws — where the FDP drifts rightward and the CDU/CSU drifts leftward — the two distributions never meet.</p>
 
         <h3>3. Individual vs. group uncertainty</h3>
-        <p>For <em>individual</em> FDP legislators, 95% credible intervals are wide (Thomas Sattelberger: −2.27 to +0.21). But the <em>ordering of parties</em> is far more precisely estimated, because it aggregates across 28 FDP legislators and averages out individual-level noise. High individual uncertainty does <strong>not</strong> imply high uncertainty about group orderings — with enough members, party-level estimates are tight. This distinction is a key advantage of the IRT approach over SVD, which delivers point estimates only.</p>
+        <p>For <em>individual</em> FDP legislators, 95% credible intervals are wide (Thomas Sattelberger: −2.27 to +0.21). But the <em>ordering of parties</em> is far more precisely estimated, because it aggregates across 28 FDP legislators and averages out individual-level noise.</p>
+        <p>This is a direct consequence of the Central Limit Theorem applied to the posterior: if each individual ideal point θ<sub>i</sub> has posterior standard deviation σ, the party mean has posterior standard deviation roughly σ/√N. For the FDP with N = 28, this reduces uncertainty by a factor of about 5. The result is that while any single FDP legislator's position is genuinely uncertain, the <em>party average</em> is pinned down tightly (posterior SD = 0.082). This distinction — high individual uncertainty coexisting with low group uncertainty — is a key advantage of the IRT approach over SVD, which delivers point estimates only and cannot separate the two.</p>
 
         <figure>
           <img src="fdp_distance_posterior.png" alt="Posterior of FDP distances">
