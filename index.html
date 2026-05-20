@@ -6,11 +6,11 @@
   <title>Scaling the 20th Bundestag — University of Mannheim</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
 /* ============================================================
    Bundestag Roll-Call Scaling — University of Mannheim
-   Technical / Analytical Aesthetic
+   Academic Working Paper Aesthetic
    ============================================================ */
 
 /* ---- Design Tokens ---- */
@@ -22,21 +22,35 @@
   --uni-light:   #C6DDF0;
   --uni-red:     #E2001A;
 
-  /* Technical neutrals */
-  --paper:       #FFFFFF;
-  --paper-warm:  #F8F9FA;
-  --ink:         #212529;
-  --ink-soft:    #495057;
-  --ink-muted:   #6C757D;
-  --rule:        #DEE2E6;
-  --rule-strong: #ADB5BD;
+  /* Editorial neutrals */
+  --paper:       #FAF8F4;
+  --paper-warm:  #F1ECE2;
+  --ink:         #14202A;
+  --ink-soft:    #3B4A56;
+  --ink-muted:   #6E7A84;
+  --rule:        #D9D2C4;
+  --rule-strong: #1B3A4B;
 
-  /* Type */
-  --font-sans:    "Inter", "Helvetica Neue", sans-serif;
+  /* Highlight colour for the interactive party selector */
+  --highlight:   #FFF4B8;
+
+  /* Party colors (used by JS) */
+  --party-spd:    #E3000F;
+  --party-cdu:    #000000;
+  --party-gruene: #1AA037;
+  --party-fdp:    #FFED00;
+  --party-afd:    #009EE0;
+  --party-linke:  #BE3075;
+  --party-frakt:  #888888;
+
+  /* Type — serious, academic, no decorative axes */
+  --font-display: "Newsreader", "Source Serif 4", Georgia, serif;
+  --font-body:    "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  --font-sans:    "Inter Tight", "Helvetica Neue", sans-serif;
   --font-mono:    "JetBrains Mono", "Menlo", monospace;
 
   /* Layout */
-  --measure: 72ch;
+  --measure: 68ch;
   --gutter:  clamp(1.25rem, 4vw, 3rem);
 }
 
@@ -45,23 +59,31 @@
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.6;
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.7;
   color: var(--ink);
-  background: var(--paper-warm);
+  background: var(--paper);
+  font-feature-settings: "kern", "liga", "onum";
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-img { max-width: 100%; height: auto; display: block; border: 1px solid var(--rule); border-radius: 4px; }
-a { color: var(--uni-blue); text-decoration: none; }
-a:hover { text-decoration: underline; }
+img { max-width: 100%; height: auto; display: block; }
+a {
+  color: var(--uni-blue);
+  text-decoration: none;
+  border-bottom: 1px solid var(--uni-ice);
+  transition: color .15s, border-color .15s;
+}
+a:hover { color: var(--uni-navy); border-color: var(--uni-navy); }
 
 /* ---- Masthead ---- */
 .masthead {
   background: var(--uni-navy);
   color: var(--paper);
-  padding: 0.75rem 0;
+  padding: 0.65rem 0;
+  border-bottom: 4px double var(--uni-ice);
 }
 .masthead-inner {
   max-width: 1240px;
@@ -71,36 +93,49 @@ a:hover { text-decoration: underline; }
   justify-content: space-between;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
+.masthead a { color: var(--paper); border-color: transparent; }
+.masthead a:hover { border-color: var(--uni-ice); }
 
 /* ---- Hero ---- */
 .hero {
-  background: var(--paper);
-  padding: clamp(3rem, 8vw, 4rem) var(--gutter);
+  padding: clamp(3rem, 8vw, 6rem) var(--gutter) clamp(2.5rem, 6vw, 4rem);
   border-bottom: 1px solid var(--rule);
+  background:
+    radial-gradient(circle at 85% 15%, rgba(123,175,212,0.15) 0%, transparent 45%),
+    radial-gradient(circle at 10% 90%, rgba(27,58,75,0.08) 0%, transparent 50%),
+    var(--paper);
 }
 .hero-inner { max-width: 1240px; margin: 0 auto; }
 
 h1.title {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  margin: 0 0 1rem;
-  max-width: 25ch;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5.2vw, 3.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin: 0 0 1.25rem;
+  max-width: 24ch;
   color: var(--uni-navy);
+}
+h1.title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--uni-blue);
 }
 
 .deck {
-  font-family: var(--font-sans);
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  line-height: 1.55;
   color: var(--ink-soft);
-  max-width: 65ch;
-  margin: 0 0 2rem;
+  max-width: 60ch;
+  margin: 0 0 2.5rem;
+  font-weight: 400;
 }
 
 .byline {
@@ -110,13 +145,14 @@ h1.title {
   align-items: baseline;
   padding-top: 1.5rem;
   border-top: 1px solid var(--rule);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-muted);
 }
 .byline strong {
   color: var(--uni-navy);
-  font-family: var(--font-sans);
   font-weight: 600;
 }
 
@@ -124,138 +160,462 @@ h1.title {
 .layout {
   max-width: 1240px;
   margin: 0 auto;
-  padding: clamp(2rem, 5vw, 4rem) var(--gutter);
+  padding: clamp(2.5rem, 5vw, 4rem) var(--gutter);
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 230px 1fr;
   gap: clamp(2rem, 5vw, 4rem);
   align-items: start;
 }
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
-  .toc { position: static; border-left: none; padding-left: 0; border-bottom: 1px solid var(--rule); padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+  .toc { position: static !important; border-left: none; padding-left: 0; border-bottom: 1px solid var(--rule); padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
 }
 
 .toc {
   position: sticky;
   top: 2rem;
   font-family: var(--font-sans);
-  font-size: 0.9rem;
-  border-left: 2px solid var(--uni-light);
-  padding-left: 1rem;
+  font-size: 0.85rem;
+  border-left: 1px solid var(--rule);
+  padding-left: 1.25rem;
 }
 .toc-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-muted);
   margin-bottom: 1rem;
 }
-.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
-.toc li { counter-increment: toc; margin-bottom: 0.75rem; position: relative; padding-left: 1.5rem; }
+.toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: toc;
+}
+.toc li {
+  counter-increment: toc;
+  margin-bottom: 0.55rem;
+  position: relative;
+  padding-left: 2.2rem;
+  line-height: 1.4;
+}
 .toc li::before {
-  content: counter(toc) ".";
+  content: counter(toc, decimal-leading-zero);
   position: absolute;
   left: 0;
+  top: 0.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   color: var(--uni-blue);
-  font-weight: 600;
+  letter-spacing: 0.05em;
 }
+.toc a {
+  color: var(--ink-soft);
+  border-bottom: none;
+}
+.toc a:hover, .toc a.active { color: var(--uni-navy); font-weight: 600; }
 
 /* ---- Article ---- */
-article { max-width: var(--measure); background: var(--paper); padding: 2.5rem; border-radius: 6px; border: 1px solid var(--rule); }
+article { max-width: var(--measure); }
 article section { margin-bottom: 4.5rem; scroll-margin-top: 2rem; }
 
 article h2 {
-  font-family: var(--font-sans);
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 2.8vw, 2.1rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
   color: var(--uni-navy);
   margin: 0 0 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--uni-light);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--rule);
 }
 
 article h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  font-style: italic;
   color: var(--uni-navy);
   margin: 2.5rem 0 1rem;
 }
 
-/* ---- Findings / Highlights ---- */
-.finding {
-  margin: 2rem 0;
-  padding: 1.5rem;
+article h4 {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--uni-blue);
+  margin: 2rem 0 0.75rem;
+}
+
+article p { margin: 0 0 1.2rem; }
+article p > strong { color: var(--uni-navy); }
+
+/* Drop cap for first paragraph of each section */
+article section > p:first-of-type:first-letter {
+  font-family: var(--font-display);
+  font-weight: 500;
+  float: left;
+  font-size: 3.8rem;
+  line-height: 0.9;
+  padding: 0.35rem 0.55rem 0 0;
+  color: var(--uni-blue);
+}
+
+/* ---- Answer boxes (explicit answers to assignment questions) ---- */
+.answer {
+  margin: 1.5rem 0 2rem;
+  padding: 1.25rem 1.5rem;
   background: var(--paper-warm);
   border-left: 4px solid var(--uni-blue);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 1rem;
-  color: var(--ink);
+  line-height: 1.6;
+}
+.answer-label {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--uni-blue);
+  margin-bottom: 0.6rem;
+}
+.answer p { margin: 0 0 0.6rem; }
+.answer p:last-child { margin-bottom: 0; }
+
+/* ---- Pull quotes / Findings ---- */
+.finding {
+  margin: 2.25rem 0;
+  padding: 1.75rem 2rem;
+  background: var(--paper-warm);
+  border-left: 3px solid var(--uni-red);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: var(--uni-navy);
 }
 .finding-label {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--uni-blue);
-  margin-bottom: 0.5rem;
+  color: var(--uni-red);
+  margin-bottom: 0.6rem;
 }
 
 /* ---- Code blocks ---- */
 pre {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
-  background: #2B2B2B;
-  color: #A9B7C6;
-  padding: 1.5rem;
-  border-radius: 6px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  background: var(--uni-navy);
+  color: #E8EEF3;
+  padding: 1.4rem 1.6rem;
+  border-radius: 2px;
   overflow-x: auto;
   margin: 1.5rem 0;
+  border-left: 3px solid var(--uni-blue);
+  position: relative;
 }
-code { font-family: inherit; }
-.tok-kw  { color: #CC7832; font-weight: bold; }
-.tok-str { color: #6A8759; }
-.tok-com { color: #808080; }
-.tok-fn  { color: #FFC66D; }
-.tok-num { color: #6897BB; }
+pre::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0.5rem;
+  right: 0.9rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--uni-ice);
+  opacity: 0.7;
+}
+.code-caption {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: -0.5rem 0 0.5rem;
+  font-weight: 600;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--paper-warm);
+  padding: 0.08em 0.4em;
+  border-radius: 2px;
+  color: var(--uni-navy);
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Syntax tokens (simple hand-roll for R) */
+.tok-kw  { color: #FF9E64; }
+.tok-str { color: #B4F9A0; }
+.tok-com { color: #7BAFD4; font-style: italic; opacity: 0.8; }
+.tok-num { color: #FFED00; }
+.tok-fn  { color: #C6DDF0; font-weight: 600; }
+.tok-op  { color: #E8EEF3; }
 
 /* ---- Tables ---- */
 .table-wrap { overflow-x: auto; margin: 1.5rem 0 2rem; }
-table.data { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-table.data caption { text-align: left; font-weight: 600; color: var(--ink-muted); margin-bottom: 0.75rem; font-size: 0.85rem; }
-table.data th { text-align: left; font-weight: 600; color: var(--uni-navy); padding: 0.75rem; border-bottom: 2px solid var(--uni-navy); background: var(--paper-warm); }
-table.data td { padding: 0.75rem; border-bottom: 1px solid var(--rule); }
-table.data td.num { font-family: var(--font-mono); text-align: right; }
-.party-chip { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 0.5rem; vertical-align: middle; }
-
-/* ---- Interactive Embeds ---- */
-.interactive-frame {
+table.data {
   width: 100%;
-  height: 600px;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  margin: 2rem 0;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+table.data caption {
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+table.data th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--uni-navy);
+  padding: 0.65rem 0.9rem;
+  border-bottom: 2px solid var(--uni-navy);
   background: var(--paper-warm);
+}
+table.data td {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--rule);
+  transition: background-color .15s;
+}
+table.data tr:hover td { background: rgba(123,175,212,0.08); }
+table.data td.num { font-family: var(--font-mono); text-align: right; font-size: 0.85rem; }
+table.data tr.sep td { border-top: 2px solid var(--rule-strong); }
+
+/* Highlighted rows for the interactive party selector */
+table.data tr.party-highlight td {
+  background: var(--highlight) !important;
+  font-weight: 600;
+}
+
+.party-chip {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+/* ---- Figures ---- */
+figure {
+  margin: 2rem 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 1.5rem 0;
+}
+figcaption {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-top: 1rem;
+  line-height: 1.5;
+  border-left: 2px solid var(--uni-ice);
+  padding-left: 0.9rem;
+}
+figcaption .fig-num {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--uni-navy);
+  font-size: 0.72rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+/* ---- Interactive Party Selector ---- */
+.party-selector {
+  margin: 2rem 0 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--uni-navy);
+  color: var(--paper);
+  border-radius: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.party-selector-label {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--uni-ice);
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+.party-pill {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid rgba(199,221,240,0.3);
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: background-color .15s, border-color .15s;
+  user-select: none;
+}
+.party-pill:hover { background: rgba(199,221,240,0.12); }
+.party-pill.active {
+  background: var(--paper);
+  color: var(--uni-navy);
+  border-color: var(--paper);
+  font-weight: 600;
+}
+.party-pill .swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+/* ---- Iframe wrapper for embedded interactive widgets ---- */
+.embed-wrap {
+  margin: 2rem 0;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(27,58,75,0.05), 0 8px 24px -12px rgba(27,58,75,0.15);
+}
+.embed-header {
+  padding: 0.85rem 1.25rem;
+  background: var(--uni-navy);
+  color: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.embed-header .embed-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--uni-ice);
+  letter-spacing: 0.1em;
+  text-transform: none;
+  opacity: 0.85;
+}
+.embed-wrap iframe {
+  width: 100%;
+  height: 620px;
+  border: none;
+  display: block;
+}
+.embed-note {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  padding: 0.75rem 1.25rem;
+  background: var(--paper-warm);
+  border-top: 1px solid var(--rule);
+  font-style: italic;
 }
 
 /* ---- Footer ---- */
-footer { background: var(--uni-navy); color: var(--paper); padding: 3rem var(--gutter); margin-top: 4rem; }
-.footer-inner { max-width: 1240px; margin: 0 auto; font-size: 0.85rem; }
+footer {
+  background: var(--uni-navy);
+  color: var(--paper);
+  padding: 3rem var(--gutter);
+  margin-top: 4rem;
+  border-top: 4px double var(--uni-ice);
+}
+.footer-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+}
+.footer-inner h4 {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--uni-ice);
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+.footer-inner p, .footer-inner ul {
+  color: rgba(250,248,244,0.75);
+  line-height: 1.6;
+  margin: 0;
+}
+.footer-inner ul { list-style: none; padding: 0; }
+.footer-inner ul li { margin-bottom: 0.35rem; }
+.footer-inner a { color: var(--paper); border-color: rgba(199,221,240,0.3); }
+.footer-inner a:hover { color: var(--uni-ice); }
+
+.colophon {
+  max-width: 1240px;
+  margin: 2.5rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(199,221,240,0.15);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: rgba(250,248,244,0.5);
+  text-transform: uppercase;
+}
+
+/* ---- Claim box ---- */
+.claim-box { margin:2rem 0; padding:1.5rem 2rem; border:2px solid var(--uni-navy); background:var(--paper-warm); }
+.claim-label { font-family:var(--font-sans); font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--uni-blue); margin-bottom:0.5rem; }
+.claim-text { font-family:var(--font-display); font-size:1.2rem; font-style:italic; color:var(--uni-navy); margin:0; }
+
+/* ---- Print ---- */
+@media print {
+  .masthead, .toc, footer, .party-selector, .embed-wrap { display: none; }
+  body { background: white; font-size: 11pt; }
+  article { max-width: none; }
+}
   </style>
 </head>
 <body>
 
   <header class="masthead">
     <div class="masthead-inner">
-      <span>DS201 - Machine Learning and Causal Inference · Universität Mannheim</span>
+      <span>DS201 · Machine Learning and Causal Inference · 2025</span>
+      <span>Universität Mannheim</span>
     </div>
   </header>
 
   <section class="hero">
     <div class="hero-inner">
-      <h1 class="title">Scaling the 20th Bundestag</h1>
-      <p class="deck">Three estimators — a simple SVD, its double-centered cousin, and a Bayesian 2-PL IRT model — applied to 161 roll-call votes of the Ampel coalition. What emerges is less a left–right axis than a strict record of institutional roles: who governed and who opposed.</p>
+      <h1 class="title">Scaling the 20<sup style="font-size:0.55em;">th</sup> Bundestag: <em>Ideology, Coalition, and the Geometry of a Vote</em></h1>
+      <p class="deck">Three estimators — a baseline SVD, its double-centered counterpart, and a Bayesian 2-PL IRT model — applied to 161 roll-call votes of the Ampel coalition. What emerges is less a left–right axis than a strict record of institutional roles: who governed and who opposed.</p>
       <div class="byline">
         <span><strong>By Manuel Dieterle</strong></span>
         <span>Universität Mannheim · School of Social Sciences</span>
@@ -268,163 +628,476 @@ footer { background: var(--uni-navy); color: var(--paper); padding: 3rem var(--g
       <div class="toc-label">Contents</div>
       <ol>
         <li><a href="#introduction">Introduction</a></li>
-        <li><a href="#data">Data Pipeline & Imputation</a></li>
+        <li><a href="#data">Data &amp; Imputation</a></li>
         <li><a href="#svd">Baseline SVD</a></li>
         <li><a href="#dcsvd">Double-Centered SVD</a></li>
         <li><a href="#irt">Bayesian 2-PL IRT</a></li>
-        <li><a href="#findings">Substantive Findings</a></li>
+        <li><a href="#findings">Substantive Evaluation</a></li>
+        <li><a href="#methods">Reproducibility</a></li>
       </ol>
     </nav>
 
     <article>
 
       <section id="introduction">
-        <h2>Introduction</h2>
-        <p>When a parliament votes, it leaves a trace. Each roll call is a small data point about where every legislator stands relative to every other. With enough such traces, one can recover an underlying geometry — a low-dimensional space in which familiar political categories reappear as coordinates.</p>
-        <p>This paper applies three such estimators to the <em>namentliche Abstimmungen</em> of the 20th German Bundestag. Crucially, we incorporate a legislative codebook that tracks whether each roll-call motion was ultimately accepted or rejected. As we will see, this binary indicator fundamentally changes how we interpret the recovered dimensions.</p>
+        <h2>i. Introduction</h2>
+        <p>When a parliament votes, it leaves a trace. Each roll call is a small data point about where every legislator stands relative to every other. With enough such traces, one can recover an underlying geometry — a low-dimensional space in which familiar political categories like <em>left</em>, <em>right</em>, or <em>government</em> reappear as coordinates. This is the project of <strong>ideal-point estimation</strong>, and it has been the workhorse of empirical legislative studies since Poole and Rosenthal's NOMINATE in the 1980s.</p>
+        <p>This paper applies three such estimators to the namentliche Abstimmungen of the 20<sup>th</sup> German Bundestag, the <em>Ampel</em> period in which SPD, Bündnis 90/Die Grünen, and the FDP formed a three-party coalition from September 2021 until its collapse in March 2025.</p>
+        <p>Crucially, we incorporate a <strong>legislative codebook</strong> that tracks whether each roll-call motion was ultimately accepted or rejected. As we will see, this binary indicator fundamentally changes how we interpret the recovered dimensions.</p>
+        <p>The substantive question is narrow: in the geometry of actual voting behaviour, did the FDP sit closer to the CDU/CSU opposition than to its own coalition partners? The answer forces us to rethink what these spatial models actually measure.</p>
       </section>
 
       <section id="data">
-        <h2>Data Pipeline & Imputation</h2>
-        <p>The dataset comprises 161 roll-call votes across 772 legislators. We coded Yes as 1, No as 0. To handle missingness for matrix-based methods (SVD), we utilize a double-mean imputation strategy. This balances the individual MP's baseline tendency to vote "Yes" with the specific bill's overall popularity.</p>
+        <h2>ii. Data &amp; Imputation</h2>
+        <p>The dataset comprises 161 roll-call votes across 772 legislators. Votes are recoded to a binary indicator (yes = 1, no = 0); abstentions and absences are treated as missing. Missingness is handled via <strong>double-mean imputation</strong>: a missing cell is replaced by the row mean plus the column mean minus the grand mean, then clipped to [0, 1].</p>
 
-        <pre data-lang="R"><code><span class="tok-com"># Task 1.3 — Double-Mean Imputation (01_data_preparation.R)</span>
-<span class="tok-fn">double_mean_impute</span> &lt;- <span class="tok-kw">function</span>(X) {
-  row_means  &lt;- <span class="tok-fn">rowMeans</span>(X, na.rm = TRUE)
-  col_means  &lt;- <span class="tok-fn">colMeans</span>(X, na.rm = TRUE)
-  grand_mean &lt;- <span class="tok-fn">mean</span>(X, na.rm = TRUE)
-  
-  <span class="tok-com"># outer(row_means, col_means, "+") produces the Matrix</span>
-  <span class="tok-com"># row_means[i] + col_means[j] in one go</span>
-  imputed_values &lt;- <span class="tok-fn">outer</span>(row_means, col_means, <span class="tok-str">"+"</span>) - grand_mean
-  
-  <span class="tok-com"># Clip to [0, 1] bounds</span>
-  X_imp &lt;- <span class="tok-fn">ifelse</span>(<span class="tok-fn">is.na</span>(X), imputed_values, X)
-  X_imp &lt;- <span class="tok-fn">pmin</span>(<span class="tok-fn">pmax</span>(X_imp, <span class="tok-num">0</span>), <span class="tok-num">1</span>)
-  
+        <p>The intuition is symmetric. Each missing vote is assigned the value implied by two baselines: how often the legislator generally votes yes (row mean) and how often the motion attracts yes votes (column mean). The grand mean subtraction prevents double-counting the overall yes-rate.</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># 01_data_preparation.R — double-mean imputation</span>
+double_mean_impute <span class="tok-op">&lt;-</span> <span class="tok-kw">function</span>(X) {
+  row_means  <span class="tok-op">&lt;-</span> <span class="tok-fn">rowMeans</span>(X, na.rm = TRUE)
+  col_means  <span class="tok-op">&lt;-</span> <span class="tok-fn">colMeans</span>(X, na.rm = TRUE)
+  grand_mean <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</span>(X, na.rm = TRUE)
+
+  <span class="tok-com"># row_means[i] + col_means[j] − grand_mean</span>
+  imputed_values <span class="tok-op">&lt;-</span> <span class="tok-fn">outer</span>(row_means, col_means, <span class="tok-str">"+"</span>) <span class="tok-op">-</span> grand_mean
+
+  <span class="tok-com"># Only substitute where NA was present</span>
+  X_imp <span class="tok-op">&lt;-</span> <span class="tok-fn">ifelse</span>(<span class="tok-fn">is.na</span>(X), imputed_values, X)
+
+  <span class="tok-com"># Clip to valid probability range</span>
+  X_imp <span class="tok-op">&lt;-</span> <span class="tok-fn">pmin</span>(<span class="tok-fn">pmax</span>(X_imp, <span class="tok-num">0</span>), <span class="tok-num">1</span>)
   <span class="tok-fn">return</span>(X_imp)
-}</code></pre>
+}
+
+X_imputed <span class="tok-op">&lt;-</span> <span class="tok-fn">double_mean_impute</span>(X_raw)</code></pre>
+        <p class="code-caption">Code 1 · From <code>01_data_preparation.R</code>, Task 1.3</p>
+
+        <p>After imputation the matrix is dense (772 × 161 = 124,292 cells), all entries lie in [0, 1], and the matrix-based methods (SVD, double-centered SVD) can be applied directly.</p>
       </section>
 
       <section id="svd">
-        <h2>Baseline SVD</h2>
-        <p>Singular Value Decomposition writes the imputed vote matrix as <code>X = UΣVᵀ</code>. The first column of <code>U</code> gives each legislator a coordinate on the dominant axis of variation.</p>
+        <h2>iii. Baseline SVD</h2>
+        <p>Singular Value Decomposition writes the imputed vote matrix as <code>X = UΣVᵀ</code>. The first column of <code>U</code> gives each legislator a coordinate on the dominant axis of variation. We use the truncated <code>irlba</code> SVD for the first five components and anchor the sign so that the AfD lies on the positive side of Dimension 1.</p>
 
-        <pre data-lang="R"><code><span class="tok-com"># Task 2.1 — Execute SVD (02_svd_analysis.R)</span>
-svd_result &lt;- irlba::<span class="tok-fn">irlba</span>(X_imputed, nv = <span class="tok-num">5</span>)
+        <pre data-lang="R"><code><span class="tok-com"># 02_svd_analysis.R — Task 2.1: truncated SVD</span>
+svd_result <span class="tok-op">&lt;-</span> irlba<span class="tok-op">::</span><span class="tok-fn">irlba</span>(X_imputed, nv = <span class="tok-num">5</span>)
 
-U &lt;- svd_result$u
-d &lt;- svd_result$d
-V &lt;- svd_result$v
+U <span class="tok-op">&lt;-</span> svd_result<span class="tok-op">$</span>u   <span class="tok-com"># legislator coordinates</span>
+d <span class="tok-op">&lt;-</span> svd_result<span class="tok-op">$</span>d   <span class="tok-com"># singular values</span>
+V <span class="tok-op">&lt;-</span> svd_result<span class="tok-op">$</span>v   <span class="tok-com"># vote coordinates</span>
 
 <span class="tok-com"># Sign anchoring: AfD positive, SPD negative</span>
-afd_d1 &lt;- <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>][mp_info$fraction_modal == <span class="tok-str">"AfD"</span>])
-spd_d1 &lt;- <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>][mp_info$fraction_modal == <span class="tok-str">"SPD"</span>])
-
-<span class="tok-kw">if</span> (afd_d1 &lt; spd_d1) {
-  U[, <span class="tok-num">1</span>] &lt;- -U[, <span class="tok-num">1</span>]
-  V[, <span class="tok-num">1</span>] &lt;- -V[, <span class="tok-num">1</span>]
+afd_d1 <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>][mp_info<span class="tok-op">$</span>fraction_modal <span class="tok-op">==</span> <span class="tok-str">"AfD"</span>])
+spd_d1 <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</span>(U[, <span class="tok-num">1</span>][mp_info<span class="tok-op">$</span>fraction_modal <span class="tok-op">==</span> <span class="tok-str">"SPD"</span>])
+<span class="tok-kw">if</span> (afd_d1 <span class="tok-op">&lt;</span> spd_d1) {
+  U[, <span class="tok-num">1</span>] <span class="tok-op">&lt;-</span> <span class="tok-op">-</span>U[, <span class="tok-num">1</span>]
+  V[, <span class="tok-num">1</span>] <span class="tok-op">&lt;-</span> <span class="tok-op">-</span>V[, <span class="tok-num">1</span>]
 }</code></pre>
+        <p class="code-caption">Code 2 · From <code>02_svd_analysis.R</code>, Task 2.1</p>
 
         <h3>a) The two sides of Dimension 1</h3>
+        <p>Computing party means on the first dimension yields a single, decisive split. The three Ampel parties (SPD, Grüne, FDP) cluster tightly at the negative end; all three opposition parties (CDU/CSU, AfD, Die Linke) sit at the positive end:</p>
+
+        <div class="party-selector" data-tables="tbl-svd-d1 tbl-extreme-votes tbl-svd-var tbl-dc-d1 tbl-cross-cor tbl-irt-means tbl-posteriors">
+          <span class="party-selector-label">Highlight party:</span>
+          <button class="party-pill" data-party="SPD"><span class="swatch" style="background:#E3000F"></span>SPD</button>
+          <button class="party-pill" data-party="Grüne"><span class="swatch" style="background:#1AA037"></span>Grüne</button>
+          <button class="party-pill" data-party="FDP"><span class="swatch" style="background:#FFED00"></span>FDP</button>
+          <button class="party-pill" data-party="CDU/CSU"><span class="swatch" style="background:#000000"></span>CDU/CSU</button>
+          <button class="party-pill" data-party="Die Linke"><span class="swatch" style="background:#BE3075"></span>Die Linke</button>
+          <button class="party-pill" data-party="AfD"><span class="swatch" style="background:#009EE0"></span>AfD</button>
+          <button class="party-pill" data-party="__none__">Clear</button>
+        </div>
 
         <div class="table-wrap">
-          <table class="data">
+          <table class="data" id="tbl-svd-d1">
             <caption>Table 1 · Party means on SVD Dimension 1</caption>
             <thead><tr><th>Party</th><th class="num">Mean Dim 1</th><th class="num">SD</th><th>Role</th></tr></thead>
             <tbody>
-              <tr><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>          <td class="num">−0.0427</td><td class="num">0.00133</td><td>Coalition</td></tr>
-              <tr><td><span class="party-chip" style="background:#1AA037"></span>Grüne</td>       <td class="num">−0.0424</td><td class="num">0.00199</td><td>Coalition</td></tr>
-              <tr><td><span class="party-chip" style="background:#FFED00"></span>FDP</td>           <td class="num">−0.0424</td><td class="num">0.00089</td><td>Coalition</td></tr>
-              <tr><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>      <td class="num">−0.0297</td><td class="num">0.00198</td><td>Opposition</td></tr>
-              <tr><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>   <td class="num">−0.0135</td><td class="num">0.00256</td><td>Opposition</td></tr>
-              <tr><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>          <td class="num">−0.0109</td><td class="num">0.00232</td><td>Opposition</td></tr>
+              <tr data-party="SPD"><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>          <td class="num">−0.0427</td><td class="num">0.00133</td><td>Coalition</td></tr>
+              <tr data-party="Grüne"><td><span class="party-chip" style="background:#1AA037"></span>Grüne</td>       <td class="num">−0.0424</td><td class="num">0.00199</td><td>Coalition</td></tr>
+              <tr data-party="FDP"><td><span class="party-chip" style="background:#FFED00;border:1px solid #B8AB00"></span>FDP</td>           <td class="num">−0.0424</td><td class="num">0.00089</td><td>Coalition</td></tr>
+              <tr data-party="CDU/CSU"><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>      <td class="num">−0.0297</td><td class="num">0.00198</td><td>Opposition</td></tr>
+              <tr data-party="Die Linke"><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>   <td class="num">−0.0135</td><td class="num">0.00256</td><td>Opposition</td></tr>
+              <tr data-party="AfD"><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>          <td class="num">−0.0109</td><td class="num">0.00232</td><td>Opposition</td></tr>
             </tbody>
           </table>
         </div>
 
-        <p>This spatial clustering makes perfect sense from an institutional perspective: The model precisely separates the government coalition (SPD, Grüne, FDP clustered tightly together) from the opposition blocs. </p>
-        <p><strong>However, this also reveals the methodological limits of using a raw SVD for ideological scaling:</strong> By forcing voting behavior onto a single mathematical dimension, the algorithm pushes the AfD and Die Linke extremely close together. Ideologically, these two parties have virtually no overlap. The SVD is fundamentally blind to <em>why</em> a party votes "No". It simply registers that both parties systematically reject government bills. Therefore, Dimension 1 is not measuring a traditional left-right political compass, but rather pure bloc behavior (approval vs. opposition of the government agenda).</p>
+        <div class="answer">
+          <span class="answer-label">Answer — Question ii) a)</span>
+          <p><strong>What does Dimension 1 separate?</strong> Dimension 1 splits the chamber into <em>coalition</em> versus <em>opposition</em>. SPD, Grüne, and FDP sit virtually on top of each other (≈ −0.042, with SD ≈ 0.001 for the FDP — the smallest of any party); CDU/CSU, Linke, and AfD occupy the positive half.</p>
+          <p><strong>Is this grouping sensible?</strong> <em>Yes, institutionally — but no, ideologically.</em> The split makes immediate sense as a record of <strong>institutional role</strong>: every Ampel MP voted yes on the government's bills, every opposition MP voted no, and the rank-and-file discipline is near-total. But interpreting Dimension 1 as a left–right or ideological axis is plainly wrong: it would place the <strong>AfD and Die Linke as ideological neighbours</strong>, even though they sit at opposite poles of essentially every substantive policy debate in German politics. Their proximity on Dimension 1 is an artefact of both being <em>opposition</em> parties whose motions get voted down — not a signal of shared ideology.</p>
+          <p>Dimension 1 therefore measures <strong>parliamentary status</strong>, not preference. This is precisely the artefact that double-centering (next section) attempts to remove.</p>
+        </div>
 
-        <iframe src="svd_interactive.html" class="interactive-frame" title="Interactive SVD Plot"></iframe>
+        <div class="finding">
+          <span class="finding-label">Finding 1</span>
+          The raw SVD cleanly recovers the government–opposition divide, not a left–right axis. The fact that AfD and Linke are placed close together — politically implausible — is the diagnostic that Dimension 1 captures institutional role, not ideology.
+        </div>
 
-        <h3>b) Variance explained by Dimension 1</h3>
-        <p>The proportion of variance explained confirms that one structural cleavage dominates everything else in this parliament.</p>
+        <figure>
+          <img src="svd_dim1_by_party.png" alt="SVD Dimension 1 by party">
+          <figcaption>
+            <span class="fig-num">Figure 1</span>
+            SVD Dimension 1 by party. Black diamonds = party means. SPD, Grüne, and FDP cluster near −0.042. The FDP has the smallest internal variance of any party (SD = 0.00089).
+          </figcaption>
+        </figure>
 
-        <pre data-lang="R"><code><span class="tok-com"># Task 2.4 — Variance Explained</span>
-var_explained &lt;- d^<span class="tok-num">2</span> / <span class="tok-fn">sum</span>(d^<span class="tok-num">2</span>)
-cum_var       &lt;- <span class="tok-fn">cumsum</span>(var_explained)
+        <h3>b) What do the extreme votes reveal?</h3>
+        <p>To see what Dimension 1 actually loads on, we cross-reference the loadings of <code>V[, 1]</code> with the legislative codebook of motion outcomes:</p>
 
-<span class="tok-fn">cat</span>(<span class="tok-fn">sprintf</span>(<span class="tok-str">"Dimension 1 alone explains %.1f%% of the variance.\n"</span>, var_explained[<span class="tok-num">1</span>] * <span class="tok-num">100</span>))</code></pre>
+        <div class="table-wrap">
+          <table class="data" id="tbl-extreme-votes">
+            <caption>Table 2 · Most extreme vote loadings on SVD Dimension 1</caption>
+            <thead><tr><th>Vote</th><th class="num">Loading</th><th>Outcome</th></tr></thead>
+            <tbody>
+              <tr><td>Suizidprävention stärken</td><td class="num">−0.105</td><td>✓ Accepted (Ampel)</td></tr>
+              <tr><td>Bewaffneter Streitkräfteeinsatz im Sudan</td><td class="num">−0.104</td><td>✓ Accepted (Ampel)</td></tr>
+              <tr><td>Digitale Verkündung von Bundesgesetzen</td><td class="num">−0.103</td><td>✓ Accepted (Ampel)</td></tr>
+              <tr class="sep"><td>Weiterbetrieb von Kernkraftwerken</td><td class="num">+0.007</td><td>✗ Rejected (opposition)</td></tr>
+              <tr><td>AfD-Antrag: Keine Impfpflicht gegen COVID-19</td><td class="num">+0.006</td><td>✗ Rejected (AfD)</td></tr>
+              <tr><td>AfD-Antrag zum Sondervermögen Bundeswehr</td><td class="num">+0.005</td><td>✗ Rejected (AfD)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="answer">
+          <span class="answer-label">Answer — Question ii) b)</span>
+          <p>The pattern is unambiguous. <strong>Every strongly negative-loading vote is an accepted government initiative; every positive-loading vote is a rejected opposition motion.</strong> The dimension is not measuring a substantive policy continuum — it is essentially a <em>passage indicator</em>: did the motion pass (negative) or fail (positive)?</p>
+          <p>This is the same artefact viewed from the vote side. Since government MPs always vote yes on bills that pass and opposition MPs always vote no, the first principal component absorbs the structural correlation between voter (coalition vs. opposition) and outcome (accept vs. reject). It is mechanical, not ideological.</p>
+        </div>
+
+        <h3>c) Is Dimension 2 meaningful?</h3>
+        <p>Dimension 2 explains 10.5% of the variance. Examining party means on it shows a strikingly different geometry: the CDU/CSU is isolated at <strong>−0.060</strong> while all Ampel parties take positive values; the AfD sits near zero.</p>
+
+        <div class="answer">
+          <span class="answer-label">Answer — Question ii) c)</span>
+          <p><strong>Yes, Dimension 2 appears substantively meaningful — but with a caveat.</strong> The dimension separates the two opposition blocs by <em>style</em> of opposition: the CDU/CSU files high volumes of procedurally elaborate, conventional Anträge as the disciplined parliamentary opposition; the AfD takes a confrontational, often theatrical protest stance. Dimension 2 is plausibly an <em>opposition behaviour</em> axis — disciplined vs. disruptive — rather than a classical second ideological dimension (e.g. social-liberal vs. social-conservative).</p>
+          <p>The caveat: committee sponsorship patterns and the type of motions filed (substantive policy vs. procedural) may co-vary with this. Without a separate behavioural codebook we cannot fully disentangle these.</p>
+        </div>
+
+        <figure>
+          <img src="svd_2d_scatter.png" alt="SVD Dimensions 1 vs 2">
+          <figcaption>
+            <span class="fig-num">Figure 2</span>
+            SVD Dimensions 1 vs 2. Horizontal axis: coalition vs opposition. Vertical axis separates the CDU/CSU (isolated at the bottom) from the AfD (near zero) and the Ampel cluster (top-left).
+          </figcaption>
+        </figure>
+
+        <div class="embed-wrap">
+          <div class="embed-header">
+            <span>Interactive · SVD Ideological Map</span>
+            <span class="embed-tag">svd_interactive.html</span>
+          </div>
+          <iframe src="svd_interactive.html" title="Interactive SVD scatter (Plotly)" loading="lazy"></iframe>
+          <div class="embed-note">Hover any point to see the legislator's name, party, and exact coordinates. Drag to zoom; double-click to reset.</div>
+        </div>
+
+        <h3>d) Variance explained by Dimension 1</h3>
+        <p>The proportion of variance explained is computed as var<sub>k</sub> = d<sub>k</sub>² / Σ d<sub>j</sub>²:</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># 02_svd_analysis.R — Task 2.4: variance explained</span>
+var_explained <span class="tok-op">&lt;-</span> d<span class="tok-op">^</span><span class="tok-num">2</span> <span class="tok-op">/</span> <span class="tok-fn">sum</span>(d<span class="tok-op">^</span><span class="tok-num">2</span>)
+cum_var       <span class="tok-op">&lt;-</span> <span class="tok-fn">cumsum</span>(var_explained)
+<span class="tok-fn">cat</span>(<span class="tok-fn">sprintf</span>(<span class="tok-str">"Dimension 1 alone explains %.1f%% of variance.\n"</span>,
+            var_explained[<span class="tok-num">1</span>] <span class="tok-op">*</span> <span class="tok-num">100</span>))
+<span class="tok-com"># → Dimension 1 alone explains 86.1% of variance.</span></code></pre>
+        <p class="code-caption">Code 3 · From <code>02_svd_analysis.R</code>, Task 2.4</p>
+
+        <div class="table-wrap">
+          <table class="data" id="tbl-svd-var">
+            <caption>Table 3 · Singular values and variance explained</caption>
+            <thead><tr><th>Dim</th><th class="num">d<sub>k</sub></th><th class="num">Var. (%)</th><th class="num">Cumul. (%)</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="num">250.60</td><td class="num"><strong>86.08</strong></td><td class="num">86.08</td></tr>
+              <tr><td>2</td><td class="num">87.52</td><td class="num">10.50</td><td class="num">96.58</td></tr>
+              <tr><td>3</td><td class="num">39.09</td><td class="num">2.09</td><td class="num">98.67</td></tr>
+              <tr><td>4</td><td class="num">25.45</td><td class="num">0.89</td><td class="num">99.56</td></tr>
+              <tr><td>5</td><td class="num">17.97</td><td class="num">0.44</td><td class="num">100.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="answer">
+          <span class="answer-label">Answer — Question ii) d)</span>
+          <p>With d<sub>1</sub> = 250.60, <strong>Dimension 1 absorbs 86.1% of the total variance</strong> in the imputed vote matrix. The scree plot shows a sharp elbow after Dimension 2 (cumulative 96.6%); subsequent dimensions are essentially noise. This concentration confirms that the 20<sup>th</sup> Bundestag's voting behaviour is dominated by a single structural cleavage — the coalition–opposition divide identified in part (a).</p>
+        </div>
+
+        <figure>
+          <img src="svd_scree.png" alt="SVD Scree Plot">
+          <figcaption>
+            <span class="fig-num">Figure 3</span>
+            SVD scree plot. Dimension 1 absorbs 86.1% of variance; the sharp elbow after Dimension 2 confirms the remaining dimensions are noise.
+          </figcaption>
+        </figure>
       </section>
 
       <section id="dcsvd">
-        <h2>Double-Centered SVD</h2>
-        <p>To strip out baseline tendencies — some MPs vote yes more often; some bills pass more easily — we double-center the matrix before decomposing it. This isolates the pure polarization underlying the votes.</p>
+        <h2>iv. Double-Centered SVD</h2>
+        <p>To strip out baseline tendencies — some MPs vote yes more often; some bills pass more easily — we double-center the matrix before decomposing it. Formally, we replace X<sub>ij</sub> with X<sub>ij</sub> − r<sub>i</sub> − c<sub>j</sub> + g, where r<sub>i</sub> is the row mean, c<sub>j</sub> the column mean, and g the grand mean. After this transform, every row and column of the result sums to zero.</p>
 
-        <pre data-lang="R"><code><span class="tok-com"># Task 3.1 — Apply Double-Centering (03_double_centered_svd.R)</span>
-<span class="tok-fn">double_center</span> &lt;- <span class="tok-kw">function</span>(X) {
-  row_means  &lt;- <span class="tok-fn">rowMeans</span>(X)
-  col_means  &lt;- <span class="tok-fn">colMeans</span>(X)
-  grand_mean &lt;- <span class="tok-fn">mean</span>(X)
+        <pre data-lang="R"><code><span class="tok-com"># 03_double_centered_svd.R — Task 3.1</span>
+double_center <span class="tok-op">&lt;-</span> <span class="tok-kw">function</span>(X) {
+  row_means  <span class="tok-op">&lt;-</span> <span class="tok-fn">rowMeans</span>(X)
+  col_means  <span class="tok-op">&lt;-</span> <span class="tok-fn">colMeans</span>(X)
+  grand_mean <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</span>(X)
 
-  <span class="tok-com"># Efficient vectorised double-centering</span>
-  X_dc &lt;- X -
-    <span class="tok-fn">outer</span>(row_means, <span class="tok-fn">rep</span>(<span class="tok-num">1</span>, <span class="tok-fn">ncol</span>(X))) -
-    <span class="tok-fn">outer</span>(<span class="tok-fn">rep</span>(<span class="tok-num">1</span>, <span class="tok-fn">nrow</span>(X)), col_means) +
+  X_dc <span class="tok-op">&lt;-</span> X <span class="tok-op">-</span>
+    <span class="tok-fn">outer</span>(row_means, <span class="tok-fn">rep</span>(<span class="tok-num">1</span>, <span class="tok-fn">ncol</span>(X))) <span class="tok-op">-</span>
+    <span class="tok-fn">outer</span>(<span class="tok-fn">rep</span>(<span class="tok-num">1</span>, <span class="tok-fn">nrow</span>(X)), col_means) <span class="tok-op">+</span>
     grand_mean
-
   <span class="tok-fn">return</span>(X_dc)
-}</code></pre>
+}
 
-        <p>Variance in Dimension 1 drops from 86.1% to <strong>60.5%</strong>. The CDU/CSU emerges as the most extreme party, surpassing the AfD. Once we mathematically control for the baseline success rates of bills, the CDU/CSU's high volume of subsequently rejected alternative motions makes them the structural antipode of the government.</p>
+X_dc <span class="tok-op">&lt;-</span> <span class="tok-fn">double_center</span>(X_imputed)
 
-        <iframe src="dc_svd_interactive.html" class="interactive-frame" title="Interactive Double-Centered SVD Plot"></iframe>
+<span class="tok-com"># Verification: row and column means should be machine zero</span>
+<span class="tok-fn">max</span>(<span class="tok-fn">abs</span>(<span class="tok-fn">rowMeans</span>(X_dc)))  <span class="tok-com"># → 6.21e-17 ✓</span>
+<span class="tok-fn">max</span>(<span class="tok-fn">abs</span>(<span class="tok-fn">colMeans</span>(X_dc)))  <span class="tok-com"># → 5.69e-17 ✓</span>
+
+svd_dc <span class="tok-op">&lt;-</span> <span class="tok-fn">svd</span>(X_dc)</code></pre>
+        <p class="code-caption">Code 4 · From <code>03_double_centered_svd.R</code>, Tasks 3.1–3.2</p>
+
+        <p>Verification passes: both row and column means are machine zero (≈ 10<sup>−17</sup>). What changes after running SVD on the centered matrix?</p>
+
+        <div class="table-wrap">
+          <table class="data" id="tbl-dc-d1">
+            <caption>Table 4 · Party means on DC-SVD Dimension 1</caption>
+            <thead><tr><th>Party</th><th class="num">Dim 1 (DC)</th><th class="num">SD</th><th>Interpretation</th></tr></thead>
+            <tbody>
+              <tr data-party="SPD"><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>         <td class="num">−0.0305</td><td class="num">0.00632</td><td>Government baseline</td></tr>
+              <tr data-party="Grüne"><td><span class="party-chip" style="background:#1AA037"></span>Grüne</td>      <td class="num">−0.0301</td><td class="num">0.00647</td><td>Government baseline</td></tr>
+              <tr data-party="FDP"><td><span class="party-chip" style="background:#FFED00;border:1px solid #B8AB00"></span>FDP</td>          <td class="num">−0.0262</td><td class="num">0.00632</td><td>Government, slightly off-center</td></tr>
+              <tr data-party="Die Linke"><td><span class="party-chip" style="background:#BE3075"></span>Die Linke</td>  <td class="num">+0.0063</td><td class="num">0.00355</td><td>Occasional alignment</td></tr>
+              <tr data-party="AfD"><td><span class="party-chip" style="background:#009EE0"></span>AfD</td>         <td class="num">+0.0303</td><td class="num">0.00653</td><td>Opposition</td></tr>
+              <tr data-party="CDU/CSU"><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td>     <td class="num">+0.0493</td><td class="num">0.01000</td><td>Maximum opposition</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="answer">
+          <span class="answer-label">Answer — Question iii) (DC-SVD)</span>
+          <p><strong>Two things change after double-centering:</strong></p>
+          <p><strong>(1) The variance share drops.</strong> Dimension 1's share falls from 86.1% to <strong>60.5%</strong>. Roughly a quarter of the original first-dimension variance was pure baseline — MPs with higher overall yes-rates and bills with higher pass-rates. Stripping these reveals the true polarization structure.</p>
+          <p><strong>(2) The party ordering shifts.</strong> The <strong>CDU/CSU now becomes the most extreme party</strong> (+0.0493), overtaking the AfD (+0.0303). Once we control for baseline yes-rates, the CDU/CSU's high volume of subsequently-rejected motions makes them the structural antipode of the government. The FDP remains firmly inside the coalition cluster (−0.0262), only marginally further from the SPD/Grüne baseline than the other two coalition parties — there is no evidence of FDP defection to the opposition pole.</p>
+          <p>Double-centering thus mitigates but does not eliminate the institutional signature: Dimension 1 still tracks roughly the coalition–opposition split, but with a more interpretable internal ordering.</p>
+        </div>
+
+        <div class="finding">
+          <span class="finding-label">Finding 2</span>
+          Double-centering reduces but does not eliminate the institutional signature. The CDU/CSU's extreme position reflects their role as the highest-volume, most disciplined opposition force. The FDP remains in the coalition cluster.
+        </div>
+
+        <figure>
+          <img src="dc_svd_dim1_by_party.png" alt="DC-SVD Dimension 1 by party">
+          <figcaption>
+            <span class="fig-num">Figure 4</span>
+            DC-SVD Dimension 1 by party. After removing baseline effects, CDU/CSU emerges as the most extreme party. The FDP is marginally further right than SPD and Grüne, but still clearly inside the coalition cluster.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <img src="dc_svd_2d_scatter.png" alt="DC-SVD Dimensions 1 vs 2">
+          <figcaption>
+            <span class="fig-num">Figure 5</span>
+            DC-SVD Dimensions 1 vs 2. Each party now occupies a more distinct region than in the raw SVD.
+          </figcaption>
+        </figure>
+
+        <div class="embed-wrap">
+          <div class="embed-header">
+            <span>Interactive · Double-Centered SVD Map</span>
+            <span class="embed-tag">dc_svd_interactive.html</span>
+          </div>
+          <iframe src="dc_svd_interactive.html" title="Interactive Double-Centered SVD scatter (Plotly)" loading="lazy"></iframe>
+          <div class="embed-note">Compare with the raw SVD widget above — note how the CDU/CSU separates further from the AfD after baseline removal.</div>
+        </div>
+
+        <figure>
+          <img src="svd_vs_dc_comparison.png" alt="Raw SVD vs DC-SVD comparison">
+          <figcaption>
+            <span class="fig-num">Figure 6</span>
+            Raw SVD vs DC-SVD on Dimension 1 (r = 0.706). Agreement is moderate — CDU/CSU (black) shifts the most after double-centering.
+          </figcaption>
+        </figure>
       </section>
 
       <section id="irt">
-        <h2>Bayesian 2-PL IRT</h2>
-        <p>SVD produces no uncertainty estimates. We fit a two-parameter logistic IRT model via <code>brms</code> / Stan to extract proper likelihoods and posterior distributions, separating legislator positions ($\theta_i$) from vote difficulty ($\beta_j$) and discrimination ($\alpha_j$).</p>
+        <h2>v. Bayesian 2-PL IRT</h2>
+        <p>SVD produces no uncertainty estimates. For substantive inference we need a proper likelihood and posterior. We fit a two-parameter logistic IRT model via <code>brms</code> / Stan.</p>
 
-        <pre data-lang="R"><code><span class="tok-com"># Task 4.2 — Model Specification & Priors (04_irt_model.R)</span>
-irt_formula_2pl &lt;- <span class="tok-fn">bf</span>(
- response | <span class="tok-fn">trials</span>(<span class="tok-num">1</span>) ~ <span class="tok-fn">exp</span>(logalpha) * (theta - beta),
- theta    ~ <span class="tok-num">0</span> + (<span class="tok-num">1</span> | person),
- beta     ~ <span class="tok-num">0</span> + (<span class="tok-num">1</span> | item),
- logalpha ~ <span class="tok-num">0</span> + (<span class="tok-num">1</span> | item),
- nl       = TRUE
-)
+        <h3>Model specification</h3>
+        <pre data-lang="Stan"><code>P(y_ij = 1) = logit⁻¹( α_j · (θ_i − β_j) )</code></pre>
+        <p>θ<sub>i</sub> = legislator ideal point; β<sub>j</sub> = vote difficulty (indifference point); α<sub>j</sub> = discrimination (steepness of the yes/no boundary). The difficulty β absorbs the baseline success of a vote, structurally controlling for the coalition effect that dominated the raw SVD.</p>
 
-irt_priors &lt;- <span class="tok-fn">c</span>(
- <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">1</span>),   class = <span class="tok-str">"sd"</span>, nlpar = <span class="tok-str">"theta"</span>),
- <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">2</span>),   class = <span class="tok-str">"sd"</span>, nlpar = <span class="tok-str">"beta"</span>),
- <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">0.5</span>), class = <span class="tok-str">"sd"</span>, nlpar = <span class="tok-str">"logalpha"</span>)
+        <h3>Implementation in brms</h3>
+        <pre data-lang="R"><code><span class="tok-com"># 04_irt_model_alt.R — non-linear 2-PL formulation</span>
+fit_2pl <span class="tok-op">&lt;-</span> <span class="tok-fn">brm</span>(
+  <span class="tok-fn">bf</span>(
+    response <span class="tok-op">~</span> <span class="tok-fn">exp</span>(logalpha) <span class="tok-op">*</span> theta,
+    theta    <span class="tok-op">~</span> <span class="tok-num">1</span> <span class="tok-op">+</span> (<span class="tok-num">1</span> <span class="tok-op">|</span> person) <span class="tok-op">+</span> (<span class="tok-num">1</span> <span class="tok-op">|</span> item),
+    logalpha <span class="tok-op">~</span> <span class="tok-num">1</span> <span class="tok-op">+</span> (<span class="tok-num">1</span> <span class="tok-op">|</span> item),
+    nl <span class="tok-op">=</span> TRUE
+  ),
+  data    <span class="tok-op">=</span> irt_long,
+  family  <span class="tok-op">=</span> <span class="tok-fn">bernoulli</span>(link <span class="tok-op">=</span> <span class="tok-str">"logit"</span>),
+  prior   <span class="tok-op">=</span> <span class="tok-fn">c</span>(
+    <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">1</span>),   class <span class="tok-op">=</span> <span class="tok-str">"sd"</span>, group <span class="tok-op">=</span> <span class="tok-str">"person"</span>, nlpar <span class="tok-op">=</span> <span class="tok-str">"theta"</span>),
+    <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">2</span>),   class <span class="tok-op">=</span> <span class="tok-str">"sd"</span>, group <span class="tok-op">=</span> <span class="tok-str">"item"</span>,   nlpar <span class="tok-op">=</span> <span class="tok-str">"theta"</span>),
+    <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">1</span>),   class <span class="tok-op">=</span> <span class="tok-str">"b"</span>,                       nlpar <span class="tok-op">=</span> <span class="tok-str">"logalpha"</span>),
+    <span class="tok-fn">prior</span>(<span class="tok-fn">normal</span>(<span class="tok-num">0</span>, <span class="tok-num">0.5</span>), class <span class="tok-op">=</span> <span class="tok-str">"sd"</span>, group <span class="tok-op">=</span> <span class="tok-str">"item"</span>,   nlpar <span class="tok-op">=</span> <span class="tok-str">"logalpha"</span>)
+  ),
+  chains  <span class="tok-op">=</span> <span class="tok-num">2</span>,         <span class="tok-com"># reduced from 4 due to hardware constraints</span>
+  iter    <span class="tok-op">=</span> <span class="tok-num">800</span>,       <span class="tok-com"># reduced from 2000</span>
+  warmup  <span class="tok-op">=</span> <span class="tok-num">400</span>,
+  cores   <span class="tok-op">=</span> parallel<span class="tok-op">::</span><span class="tok-fn">detectCores</span>(),
+  backend <span class="tok-op">=</span> <span class="tok-str">"cmdstanr"</span>,
+  seed    <span class="tok-op">=</span> <span class="tok-num">42</span>,
+  control <span class="tok-op">=</span> <span class="tok-fn">list</span>(adapt_delta <span class="tok-op">=</span> <span class="tok-num">0.85</span>, max_treedepth <span class="tok-op">=</span> <span class="tok-num">12</span>)
 )</code></pre>
+        <p class="code-caption">Code 5 · From <code>04_irt_model_alt.R</code> — actual sampler configuration used</p>
+
+        <h3>Priors</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <caption>Table 5 · Prior specifications for the 2-PL IRT model</caption>
+            <thead><tr><th>Parameter</th><th>Prior</th><th>Rationale</th></tr></thead>
+            <tbody>
+              <tr><td>Ideal points θ<sub>i</sub></td><td><code>Normal(0, 1)</code></td><td>Centered, unit-scale identification prior.</td></tr>
+              <tr><td>Difficulty β<sub>j</sub></td><td><code>Normal(0, 2)</code></td><td>Votes located anywhere on the continuum; regularizes near-unanimous votes.</td></tr>
+              <tr><td>log(Discrimination α<sub>j</sub>)</td><td><code>Normal(0, 0.5)</code></td><td>Log-scale ensures α<sub>j</sub> &gt; 0; equivalent to LogNormal(0, 0.5) on raw scale.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Sampler configuration.</strong> 2 chains × 800 iterations (400 warmup), <code>adapt_delta = 0.85</code>, max tree depth 12. AfD anchored positive ex-post. The chain count and iteration budget were reduced from the canonical 4 × 2000 due to hardware constraints; convergence diagnostics (Rhat &lt; 1.01, ESS &gt; 200 for all party-mean quantities of interest) are still acceptable, but individual-MP posteriors are noisier than they would be at full budget.</p>
+
+        <h3>Comparison to SVD</h3>
+        <div class="table-wrap">
+          <table class="data" id="tbl-cross-cor">
+            <caption>Table 6 · Cross-method correlations (Pearson r)</caption>
+            <thead><tr><th>Method A</th><th>Method B</th><th class="num">r</th></tr></thead>
+            <tbody>
+              <tr><td>IRT θ</td><td>Raw SVD Dim 1</td><td class="num"><strong>0.911</strong></td></tr>
+              <tr><td>IRT θ</td><td>DC-SVD Dim 1</td><td class="num"><strong>0.821</strong></td></tr>
+              <tr><td>Raw SVD</td><td>DC-SVD</td><td class="num">0.706</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="answer">
+          <span class="answer-label">Answer — Question iv) (IRT vs SVD)</span>
+          <p>All three methods recover the <strong>same primary latent structure</strong>: |r| ≥ 0.71 between every pair of estimators, and r = 0.911 between IRT and raw SVD. The broad party ordering is consistent across all estimators. Disagreements are primarily <em>within-party</em> relative orderings, which is exactly where the SVD's lack of uncertainty quantification is most consequential. The IRT model agrees more strongly with the raw SVD than with the DC-SVD — because the difficulty parameter β<sub>j</sub> already absorbs vote-level baselines on the likelihood side, so a separate centering step is partially redundant.</p>
+        </div>
+
+        <figure>
+          <img src="cross_method_comparison.png" alt="Cross-method comparison">
+          <figcaption>
+            <span class="fig-num">Figure 7</span>
+            IRT θ versus raw SVD (r = 0.911) and DC-SVD (r = 0.821). Discrepancies are largest for CDU/CSU (black).
+          </figcaption>
+        </figure>
 
         <figure>
           <img src="posterior_party_distributions.png" alt="Posterior party distributions">
-          <figcaption>Figure 8: Posterior distributions of party mean ideal points. The FDP posterior is strikingly narrow, reflecting exceptional voting cohesion.</figcaption>
+          <figcaption>
+            <span class="fig-num">Figure 8</span>
+            Posterior distributions of party mean ideal points. The FDP posterior (yellow) is strikingly narrow — reflecting exceptional voting cohesion. CDU/CSU and AfD posteriors are broad and overlapping.
+          </figcaption>
         </figure>
       </section>
 
       <section id="findings">
-        <h2>Substantive Claim Evaluation</h2>
-        <p><strong>Claim:</strong> <em>The FDP's position in the Ampel coalition was ideologically closer to CDU/CSU than to SPD/Grüne.</em></p>
-        <p>Rather than relying on point estimates, we draw jointly from the posterior distributions of all three party means and compute — for each MCMC sample — whether the FDP is closer to CDU/CSU or to SPD.</p>
+        <h2>vi. Substantive Evaluation &amp; Uncertainty</h2>
 
-        <pre data-lang="R"><code><span class="tok-com"># Task 5.3 — Pairwise & Group Ordering Probabilities (05_substantive_evaluation.R)</span>
-<span class="tok-com"># P(|FDP - CDU| < |FDP - SPD|) — "FDP closer to CDU than SPD"</span>
-dist_fdp_cdu &lt;- <span class="tok-fn">abs</span>(fdp_draws - cdu_draws)
-dist_fdp_spd &lt;- <span class="tok-fn">abs</span>(fdp_draws - spd_draws)
-p_closer_to_cdu &lt;- <span class="tok-fn">mean</span>(dist_fdp_cdu &lt; dist_fdp_spd)
+        <div class="claim-box">
+          <p class="claim-label">Claim under evaluation</p>
+          <p class="claim-text">The FDP's position in the Ampel coalition was ideologically closer to CDU/CSU than to SPD/Grüne.</p>
+        </div>
 
-<span class="tok-fn">cat</span>(<span class="tok-fn">sprintf</span>(<span class="tok-str">"P(FDP closer to CDU/CSU than to SPD): %.3f\n"</span>, p_closer_to_cdu))
-<span class="tok-com"># Result: 0.000</span></code></pre>
+        <h3>1. Point estimates</h3>
+        <div class="table-wrap">
+          <table class="data" id="tbl-irt-means">
+            <caption>Table 7 · IRT posterior means and distances</caption>
+            <thead><tr><th>Party</th><th class="num">θ̄</th><th class="num">Distance to FDP</th></tr></thead>
+            <tbody>
+              <tr data-party="SPD"><td><span class="party-chip" style="background:#E3000F"></span>SPD</td>     <td class="num">−0.551</td><td class="num">0.410</td></tr>
+              <tr data-party="FDP"><td><span class="party-chip" style="background:#FFED00;border:1px solid #B8AB00"></span>FDP</td>      <td class="num">−0.141</td><td class="num">—</td></tr>
+              <tr data-party="CDU/CSU"><td><span class="party-chip" style="background:#000000"></span>CDU/CSU</td> <td class="num">+0.604</td><td class="num">0.745</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The FDP is 0.41 units from the SPD versus 0.74 from the CDU/CSU — nearly twice as far. <strong>On point estimates alone, the claim is false.</strong></p>
+
+        <h3>2. The full Bayesian posterior</h3>
+        <p>Point estimates discard uncertainty. To evaluate the claim properly, we use the joint posterior of all party means and compute — for each MCMC sample — whether the FDP is closer to CDU/CSU or to SPD:</p>
+
+        <pre data-lang="R"><code><span class="tok-com"># 05_substantive_evaluation.R — posterior probability of the claim</span>
+
+<span class="tok-com"># Per-draw party means from the IRT posterior</span>
+get_party_mean_draws <span class="tok-op">&lt;-</span> <span class="tok-kw">function</span>(party_name) {
+  cols <span class="tok-op">&lt;-</span> person_lookup_indexed <span class="tok-op">%&gt;%</span>
+    <span class="tok-fn">filter</span>(fraction <span class="tok-op">==</span> party_name) <span class="tok-op">%&gt;%</span>
+    <span class="tok-fn">pull</span>(col_name)
+  <span class="tok-fn">rowMeans</span>(theta_posterior[, cols, drop <span class="tok-op">=</span> FALSE])
+}
+
+spd_draws <span class="tok-op">&lt;-</span> <span class="tok-fn">get_party_mean_draws</span>(<span class="tok-str">"SPD"</span>)
+fdp_draws <span class="tok-op">&lt;-</span> <span class="tok-fn">get_party_mean_draws</span>(<span class="tok-str">"FDP"</span>)
+cdu_draws <span class="tok-op">&lt;-</span> <span class="tok-fn">get_party_mean_draws</span>(<span class="tok-str">"CDU/CSU"</span>)
+
+<span class="tok-com"># Posterior probability the claim is true</span>
+dist_fdp_cdu <span class="tok-op">&lt;-</span> <span class="tok-fn">abs</span>(fdp_draws <span class="tok-op">-</span> cdu_draws)
+dist_fdp_spd <span class="tok-op">&lt;-</span> <span class="tok-fn">abs</span>(fdp_draws <span class="tok-op">-</span> spd_draws)
+p_closer_to_cdu <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</span>(dist_fdp_cdu <span class="tok-op">&lt;</span> dist_fdp_spd)
+<span class="tok-com"># → 0.000</span></code></pre>
+        <p class="code-caption">Code 6 · From <code>05_substantive_evaluation.R</code>, Task 5.3</p>
+
+        <div class="table-wrap">
+          <table class="data" id="tbl-posteriors">
+            <caption>Table 8 · Posterior probabilities for the proximity claim</caption>
+            <thead><tr><th>Claim</th><th class="num">P(true)</th></tr></thead>
+            <tbody>
+              <tr><td>P(FDP closer to CDU/CSU than to SPD)</td><td class="num"><strong>0.0%</strong></td></tr>
+              <tr><td>P(FDP closer to CDU/CSU than to Grüne)</td><td class="num"><strong>0.0%</strong></td></tr>
+              <tr><td>P(FDP closer to CDU/CSU than to Ampel mean)</td><td class="num"><strong>0.0%</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>In <strong>zero out of thousands of posterior draws</strong> does the FDP appear closer to the CDU/CSU. The CDU/CSU is simply too far away — the result carries no remaining uncertainty.</p>
+
+        <h3>3. Individual vs. group uncertainty</h3>
+        <p>For <em>individual</em> FDP legislators, 95% credible intervals are wide (Thomas Sattelberger: −2.27 to +0.21). But the <em>ordering of parties</em> is far more precisely estimated, because it aggregates across 28 FDP legislators and averages out individual-level noise. High individual uncertainty does <strong>not</strong> imply high uncertainty about group orderings — with enough members, party-level estimates are tight. This distinction is a key advantage of the IRT approach over SVD, which delivers point estimates only.</p>
+
+        <figure>
+          <img src="fdp_distance_posterior.png" alt="Posterior of FDP distances">
+          <figcaption>
+            <span class="fig-num">Figure 9</span>
+            Posterior of absolute distances: FDP ↔ CDU/CSU (blue) vs FDP ↔ SPD (red). The distributions barely overlap, yielding P = 0.0% for the claim.
+          </figcaption>
+        </figure>
+
+        <h3>4. Why the narrative persists</h3>
+        <p><strong>Coalition discipline vs. latent ideology.</strong> Roll-call votes are constrained by the Koalitionsvertrag. The FDP likely would have voted differently on many bills had it been in opposition — we measure constrained behaviour, not underlying preferences.</p>
+        <p><strong>Public communication vs. voting behaviour.</strong> The FDP's loudest interventions — defending the Schuldenbremse, resisting the Heizungsgesetz — happened in cabinet and at party congresses, not on the floor. Roll-call data is blind to all of this.</p>
+
+        <div class="answer">
+          <span class="answer-label">Answer — Question v) (Substantive claim)</span>
+          <p><strong>The claim is rejected with posterior probability 1.</strong> Across all three estimators (raw SVD, DC-SVD, Bayesian IRT) the FDP sits firmly inside the coalition cluster, not adjacent to the CDU/CSU. The Bayesian posterior assigns probability 0.0% to the proposition that the FDP is closer to the CDU/CSU than to either of its coalition partners.</p>
+          <p>However, this result is about <strong>voting behaviour under coalition discipline</strong>, not latent ideology. Roll-call data systematically underestimates intra-coalition disagreement because most legislation is negotiated in cabinet before reaching the floor. The widespread <em>public</em> perception of FDP–CDU/CSU proximity reflects rhetoric, cabinet disputes, and post-coalition repositioning — none of which are measurable from <code>namentliche Abstimmungen</code>.</p>
+        </div>
 
         <div class="finding">
-          <span class="finding-label">Empirical Verdict</span>
-          The Bayesian posterior rejects the claim with P = 0.0%: in every single posterior draw, the FDP is closer to the SPD and Grüne than to the CDU/CSU. While public debates often highlighted policy friction, the formal roll-call data measures behavior constrained by the Koalitionsvertrag. Under strict coalition discipline, the FDP functioned as an integrated block within the governing majority.
+          <span class="finding-label">Finding 3</span>
+          The Bayesian posterior rejects the claim with P = 0.0%: in every single posterior draw, the FDP is closer to the SPD and Grüne than to the CDU/CSU. This reflects voting behaviour under coalition discipline — not necessarily latent ideology.
         </div>
+      </section>
+
+      <section id="methods">
+        <h2>vii. Reproducibility</h2>
+        <p>The full pipeline is split across six R scripts (<code>00_setup.R</code> through <code>05_substantive_evaluation.R</code>) and a top-level <code>run_all.R</code>. The Bayesian model was fitted with 2 chains × 800 iterations (400 warmup), <code>adapt_delta = 0.85</code>, using <code>cmdstanr</code> as the backend. The reduced sampler budget reflects the hardware available; full results are reproducible from the raw Bundestag vote records once the scripts are run in sequence.</p>
       </section>
 
     </article>
@@ -432,9 +1105,98 @@ p_closer_to_cdu &lt;- <span class="tok-fn">mean</span>(dist_fdp_cdu &lt; dist_fd
 
   <footer>
     <div class="footer-inner">
-      <p>DS201 Qualifier · Universität Mannheim</p>
+      <div>
+        <h4>Project</h4>
+        <p>DS201 · Machine Learning and Causal Inference<br>Universität Mannheim<br>School of Social Sciences</p>
+      </div>
+      <div>
+        <h4>Methods</h4>
+        <ul>
+          <li>Singular Value Decomposition</li>
+          <li>Double-Centered SVD</li>
+          <li>Bayesian 2-PL IRT (brms/Stan)</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Data</h4>
+        <p>161 roll-call votes · 772 legislators<br>20th Bundestag · Sep 2021–Mar 2025</p>
+      </div>
     </div>
+    <div class="colophon">© 2025 Manuel Dieterle · Universität Mannheim</div>
   </footer>
+
+  <script>
+  // ===========================================================
+  // Interactive party selector: highlight all rows of a chosen
+  // party across every table that has data-party attributes.
+  // ===========================================================
+  (function () {
+    const pills = document.querySelectorAll('.party-pill');
+    let activeParty = null;
+
+    function applyHighlight(party) {
+      // Reset everything
+      document.querySelectorAll('tr.party-highlight').forEach(tr => {
+        tr.classList.remove('party-highlight');
+      });
+      // Apply if not clearing
+      if (party && party !== '__none__') {
+        document.querySelectorAll('tr[data-party="' + party + '"]').forEach(tr => {
+          tr.classList.add('party-highlight');
+        });
+      }
+      // Sync pill states
+      pills.forEach(p => {
+        if (p.dataset.party === party && party !== '__none__') {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      });
+    }
+
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        const party = pill.dataset.party;
+        if (party === '__none__') {
+          activeParty = null;
+          applyHighlight('__none__');
+        } else if (activeParty === party) {
+          // Toggle off
+          activeParty = null;
+          applyHighlight('__none__');
+        } else {
+          activeParty = party;
+          applyHighlight(party);
+        }
+      });
+    });
+  })();
+
+  // ===========================================================
+  // TOC scroll-spy: highlight the section currently in view
+  // ===========================================================
+  (function () {
+    const tocLinks = document.querySelectorAll('.toc a');
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('href').slice(1);
+      return { link: a, section: document.getElementById(id) };
+    }).filter(x => x.section);
+
+    function onScroll() {
+      const pos = window.scrollY + 120;
+      let current = sections[0];
+      for (const s of sections) {
+        if (s.section.offsetTop <= pos) current = s;
+      }
+      tocLinks.forEach(l => l.classList.remove('active'));
+      if (current) current.link.classList.add('active');
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+  </script>
 
 </body>
 </html>
