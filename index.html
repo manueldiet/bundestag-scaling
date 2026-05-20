@@ -634,6 +634,7 @@ footer {
         <li><a href="#irt">Bayesian 2-PL IRT</a></li>
         <li><a href="#findings">Substantive Evaluation</a></li>
         <li><a href="#methods">Reproducibility</a></li>
+        <li><a href="#ai-docs">AI Documentation</a></li>
       </ol>
     </nav>
 
@@ -1116,10 +1117,25 @@ p_closer_to_cdu <span class="tok-op">&lt;-</span> <span class="tok-fn">mean</spa
         </div>
       </section>
 
-      <section id="methods">
-        <h2>vii. Reproducibility</h2>
-        <p>The full pipeline is split across six R scripts (<code>00_setup.R</code> through <code>05_substantive_evaluation.R</code>) and a top-level <code>run_all.R</code>. The Bayesian model was fitted with 2 chains × 800 iterations (400 warmup), <code>adapt_delta = 0.85</code>, using <code>cmdstanr</code> as the backend. The reduced sampler budget reflects the hardware available; full results are reproducible from the raw Bundestag vote records once the scripts are run in sequence.</p>
-      </section>
+<section id="methods">
+  <h2>vii. Reproducibility</h2>
+  <p>The full pipeline is split across six R scripts (<code>00_setup.R</code> through <code>05_substantive_evaluation.R</code>) and a top-level <code>run_all.R</code>. The Bayesian model was fitted with 2 chains × 800 iterations (400 warmup), <code>adapt_delta = 0.85</code>, using <code>cmdstanr</code> as the backend. The reduced sampler budget reflects the hardware available; full results are reproducible from the raw Bundestag vote records once the scripts are run in sequence.</p>
+  <p>The complete R project — including all scripts, raw data, and output files — is archived as a self-contained zip archive and available for download directly from this repository:</p>
+  <p>
+    <a href="https://github.com/manueldiet/bundestag-scaling/raw/main/bundestag-scaling-project.zip"
+       style="font-family: var(--font-sans); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1rem; background: var(--uni-navy); color: var(--paper); border: none; border-radius: 2px; text-decoration: none; transition: background .15s;"
+       onmouseover="this.style.background='var(--uni-blue)'" onmouseout="this.style.background='var(--uni-navy)'">
+      ↓ Download R Project (.zip)
+    </a>
+  </p>
+  <p>The archive contains the directories <code>data/</code>, <code>scripts/</code>, and <code>output/</code> as laid out in the repository root. Running <code>setup.sh</code> followed by <code>Rscript run_all.R</code> reproduces all tables, figures, and model fits reported in this paper.</p>
+</section>
+
+<section id="ai-docs">
+  <h2>viii. AI Documentation</h2>
+  <p>Parts of this project were developed with the assistance of large language models. The models used were <strong>Claude Sonnet 4.6</strong>, <strong>Claude Opus 4.6</strong>, and <strong>Claude Opus 4.7</strong> (Anthropic), as well as <strong>Gemini 2.5 Pro</strong> and <strong>Gemini 2.5 Flash</strong> (Google DeepMind). AI assistance was used for code debugging, methodological discussion, and drafting written explanations; all analytical decisions and final results were verified and approved by the author.</p>
+  <p>In the interest of transparency and reproducibility, the full chat logs for all AI-assisted sessions are preserved and publicly available in the <a href="https://github.com/manueldiet/bundestag-scaling/tree/main/ai-logs"><code>ai-logs/</code> folder of this repository</a>.</p>
+</section>
 
     </article>
   </div>
